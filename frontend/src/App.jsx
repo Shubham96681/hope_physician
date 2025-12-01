@@ -18,6 +18,8 @@ import KYCReview from "./pages/admin/KYCReview";
 
 // Doctor Pages
 import DoctorDashboard from "./pages/doctor/DoctorDashboard";
+import DoctorAppointments from "./pages/doctor/Appointments";
+import PatientProfile from "./pages/doctor/PatientProfile";
 
 // Patient Pages
 import PatientDashboard from "./pages/patient/PatientDashboard";
@@ -84,30 +86,35 @@ function App() {
       <Route path="/admin/patients" element={<AdminDashboard />} />
       <Route path="/admin/doctors" element={<AdminDashboard />} />
       <Route path="/admin/appointments" element={<AdminDashboard />} />
-      <Route path="/admin/kyc" element={<KYCReview />} />
+      <Route path="/admin/kyc-review" element={<KYCReview />} />
       <Route path="/admin/attendance" element={<AdminDashboard />} />
+      <Route path="/admin/reports" element={<AdminDashboard />} />
       <Route path="/admin/notifications" element={<AdminDashboard />} />
       <Route path="/admin/settings" element={<AdminDashboard />} />
 
       {/* Doctor Routes */}
       <Route path="/doctor" element={<DoctorDashboard />} />
-      <Route path="/doctor/appointments" element={<DoctorDashboard />} />
+      <Route path="/doctor/appointments" element={<DoctorAppointments />} />
       <Route path="/doctor/patients" element={<DoctorDashboard />} />
+      <Route path="/doctor/patients/:id" element={<PatientProfile />} />
       <Route path="/doctor/calendar" element={<DoctorDashboard />} />
+      <Route path="/doctor/prescriptions" element={<DoctorDashboard />} />
       <Route path="/doctor/notifications" element={<DoctorDashboard />} />
 
       {/* Patient Routes */}
       <Route path="/patient" element={<PatientDashboard />} />
       <Route path="/patient/appointments" element={<PatientDashboard />} />
-      <Route path="/patient/book" element={<BookAppointment />} />
+      <Route path="/patient/book-appointment" element={<BookAppointment />} />
       <Route path="/patient/profile" element={<PatientDashboard />} />
-      <Route path="/patient/kyc" element={<KYCDocuments />} />
+      <Route path="/patient/kyc-documents" element={<KYCDocuments />} />
       <Route path="/patient/notifications" element={<PatientDashboard />} />
 
       {/* Staff Routes */}
       <Route path="/staff" element={<StaffDashboard />} />
+      <Route path="/staff/tasks" element={<StaffDashboard />} />
       <Route path="/staff/attendance" element={<StaffDashboard />} />
-      <Route path="/staff/kyc-assist" element={<StaffDashboard />} />
+      <Route path="/staff/kyc-assistance" element={<StaffDashboard />} />
+      <Route path="/staff/appointments" element={<StaffDashboard />} />
       <Route path="/staff/notifications" element={<StaffDashboard />} />
     </Routes>
   );

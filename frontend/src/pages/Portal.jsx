@@ -69,12 +69,25 @@ const Portal = () => {
 
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
-      const email = formData.email || formData.username;
-      const result = await login(email, formData.password, selectedRole);
-      setLoading(false);
+      setErrors({}); // Clear previous errors
 
-      if (!result.success) {
-        setErrors({ general: result.error });
+      try {
+        const email = formData.email || formData.username;
+        const result = await login(email, formData.password, selectedRole);
+
+        if (!result.success) {
+          setErrors({
+            general:
+              result.error || "Login failed. Please check your credentials.",
+          });
+        }
+        // If successful, AuthContext will handle navigation
+      } catch (error) {
+        setErrors({
+          general: error.message || "Login failed. Please try again.",
+        });
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -384,12 +397,13 @@ const Portal = () => {
                         <FaEnvelope />
                       </span>
                       <input
-                        type="text"
+                        type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
                         placeholder="Email or Username"
                         className={errors.email ? "error" : ""}
+                        autoComplete="username"
                         required
                       />
                     </div>
@@ -408,6 +422,7 @@ const Portal = () => {
                         onChange={handleChange}
                         placeholder="Password"
                         className={errors.password ? "error" : ""}
+                        autoComplete="current-password"
                         required
                       />
                     </div>
@@ -428,6 +443,7 @@ const Portal = () => {
                         onChange={handleChange}
                         placeholder="Phone Number"
                         className={errors.phone ? "error" : ""}
+                        autoComplete="tel"
                         required
                       />
                     </div>
@@ -437,6 +453,14 @@ const Portal = () => {
                   </>
                 )}
 
+                {errors.general && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-800 font-medium">
+                      {errors.general}
+                    </p>
+                  </div>
+                )}
+
                 <div className="login-form-actions">
                   <Button
                     type="submit"
@@ -444,7 +468,7 @@ const Portal = () => {
                     className="w-full"
                     loading={loading}
                     disabled={loading}>
-                    Login
+                    {loading ? "Logging in..." : "Login"}
                   </Button>
                   <a
                     href="#"
@@ -458,11 +482,6 @@ const Portal = () => {
                     Trouble logging in?
                   </a>
                 </div>
-                {errors.general && (
-                  <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                    {errors.general}
-                  </div>
-                )}
               </form>
             )}
           </div>

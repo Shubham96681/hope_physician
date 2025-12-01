@@ -50,29 +50,41 @@ export const login = async (email, password, role = null) => {
       email,
       password,
       role
+    }, {
+      timeout: 3000 // 3 second timeout
     });
     return response.data;
   } catch (error) {
-    // Fallback to mock for development
-    if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
-      console.warn('API not available, using mock data');
+    // Fallback to mock for development (catch 404, network errors, timeouts)
+    const isNetworkError = 
+      error.code === 'ECONNREFUSED' || 
+      error.code === 'ERR_NETWORK' ||
+      error.message.includes('Network Error') ||
+      error.response?.status === 404 ||
+      error.code === 'ECONNABORTED';
+    
+    if (isNetworkError) {
+      console.warn('API not available, using mock data for login');
       
       // Find user in mock data
       const user = Object.values(MOCK_USERS).find(
-        u => u.email === email && u.password === password
+        u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
       );
       
       if (!user) {
-        throw new Error('Invalid email or password');
+        throw new Error('Invalid email or password. Please check your credentials.');
       }
       
       // Check role if specified
-      if (role && user.role !== role) {
-        throw new Error(`Access denied. This account is for ${user.role} role.`);
+      if (role && user.role !== role.toLowerCase()) {
+        throw new Error(`Access denied. This account is for ${user.role} role, but you selected ${role}.`);
       }
       
       // Generate mock token
       const token = `mock_token_${user.id}_${Date.now()}`;
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       return {
         token,
@@ -82,7 +94,13 @@ export const login = async (email, password, role = null) => {
         }
       };
     }
-    throw error;
+    
+    // Handle other API errors
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    }
+    
+    throw new Error(error.message || 'Login failed. Please try again.');
   }
 };
 
@@ -92,12 +110,20 @@ export const getCurrentUser = async () => {
     if (!token) return null;
     
     const response = await axios.get(`${API_BASE}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` },
+      timeout: 3000
     });
     return response.data;
   } catch (error) {
-    // Fallback to mock
-    if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
+    // Fallback to mock (catch 404, network errors, timeouts)
+    const isNetworkError = 
+      error.code === 'ECONNREFUSED' || 
+      error.code === 'ERR_NETWORK' ||
+      error.message.includes('Network Error') ||
+      error.response?.status === 404 ||
+      error.code === 'ECONNABORTED';
+    
+    if (isNetworkError) {
       const token = localStorage.getItem('token');
       if (!token) return null;
       
@@ -110,6 +136,7 @@ export const getCurrentUser = async () => {
           return { ...user, password: undefined };
         }
       }
+      return null;
     }
     throw error;
   }

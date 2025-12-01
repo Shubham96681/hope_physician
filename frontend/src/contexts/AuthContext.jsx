@@ -45,7 +45,13 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, role = null) => {
     try {
+      setLoading(true);
       const response = await authService.login(email, password, role);
+      
+      if (!response || !response.token || !response.user) {
+        throw new Error('Invalid response from server');
+      }
+      
       const { token: newToken, user: userData } = response;
       
       if (!userData.is_active || !userData.can_access_system) {
@@ -70,10 +76,13 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      console.error('Login error:', error);
       return { 
         success: false, 
         error: error.message || 'Login failed. Please check your credentials.' 
       };
+    } finally {
+      setLoading(false);
     }
   };
 
