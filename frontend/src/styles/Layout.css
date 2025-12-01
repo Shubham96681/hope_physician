@@ -1,0 +1,364 @@
+
+/* =======================
+   LAYOUT & GENERAL STYLES
+========================= */
+
+/* BODY & CONTAINER */
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    background: #f8f9fa;
+    color: #333;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* NAVBAR */
+.navbar {
+    width: 100%;
+    background: #ffffff;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.hospital-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0057bb;
+}
+
+.nav-center {
+    flex-grow: 1;
+    margin: 0 20px;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links > li {
+    margin: 0 4px;
+}
+
+.nav-links li a {
+    color: #2b2b2b;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: color .3s ease;
+    padding: 10px 16px;
+    display: block;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.nav-links li a:hover {
+    background-color: #f0f7ff;
+}
+
+.nav-links li a:hover {
+    color: #0057bb;
+    background-color: #f0f7ff;
+}
+
+/* Navigation Buttons Container */
+.nav-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-appointment,
+.btn-portal {
+    background: #0057bb;
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 8px;
+    text-align: center;
+    line-height: 1.1;
+    text-decoration: none;
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-appointment:hover,
+.btn-portal:hover {
+    background: #003f8c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 87, 187, 0.3);
+}
+
+.btn-appointment:active,
+.btn-portal:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 87, 187, 0.2);
+}
+
+/* FOOTER */
+.main-footer {
+    background: #2b2b2b;
+    color: #ffffff;
+    padding: 50px 20px 20px;
+    margin-top: 50px;
+    font-family: "Segoe UI", sans-serif;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.footer-section {
+    flex: 1;
+    min-width: 250px;
+}
+
+.footer-title {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.footer-motto {
+    font-size: 15px;
+    opacity: 0.8;
+}
+
+.footer-heading {
+    font-size: 20px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #555;
+    padding-bottom: 5px;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: 10px;
+}
+
+.footer-links a {
+    color: #dcdcdc;
+    text-decoration: none;
+    transition: 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: #ffffff;
+    padding-left: 5px;
+}
+
+.footer-contact {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-contact li {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.9;
+}
+
+.footer-socials a {
+    color: white;
+    margin-right: 12px;
+    font-size: 22px;
+    transition: 0.3s ease;
+}
+
+.footer-socials a:hover {
+    color: #bbbbbb;
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #444;
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+/* FLASH MESSAGES */
+.flash-messages {
+    width: 90%;
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+.alert {
+    padding: 12px 20px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.alert.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert.danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* PAGE HERO */
+.page-hero {
+    position: relative;
+    width: 100%;
+    height: 45vh;
+    background-size: cover;
+    background-position: center;
+    border-radius: 0 0 20px 20px;
+    overflow: hidden;
+}
+
+.page-hero-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 20, 40, 0.55);
+    backdrop-filter: blur(2px);
+}
+
+.page-hero-content {
+    position: relative;
+    text-align: center;
+    top: 55%;
+    transform: translateY(-50%);
+    color: white;
+    padding: 20px;
+}
+
+.page-hero-content h1 {
+    font-size: 48px;
+    font-weight: 700;
+}
+
+.page-hero-content p {
+    font-size: 18px;
+    margin-top: 10px;
+    opacity: 0.9;
+}
+
+.page-title {
+    font-size: 34px;
+    margin-top: 40px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.page-subtitle {
+    text-align: center;
+    color: #555;
+    margin-bottom: 40px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    .nav-row {
+        flex-direction: column;
+        gap: 18px;
+    }
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+    }
+    .nav-links > li {
+        margin: 2px;
+    }
+    .nav-links li a {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+    .nav-buttons {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .btn-appointment,
+    .btn-portal {
+        flex: 1;
+        min-width: 140px;
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 600px) {
+    .nav-buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+    .btn-appointment,
+    .btn-portal {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .nav-links {
+        gap: 4px;
+    }
+    .nav-links li a {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+    .dropdown-toggle {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}

@@ -1,0 +1,32 @@
+/* Social Media Icons - Ash Colors */
+.footer-socials {
+  display: flex;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #6b7280; /* Ash color */
+  border-radius: 50%;
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+  transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+  background-color: #4b5563; /* Darker ash on hover */
+  transform: translateY(-2px);
+}
+
+/* Contact Icons - Blue Color */
+.contact-icon {
+  color: #3b82f6; /* Blue color */
+  margin-right: 8px;
+  font-size: 16px;
+}

@@ -1,0 +1,622 @@
+/* Portal Page Styles */
+.portal-page {
+  min-height: 100vh;
+  background: #ffffff;
+  position: relative;
+  padding: 60px 20px;
+  overflow: hidden;
+}
+
+.portal-bg-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wave-shape {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  opacity: 0.1;
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+}
+
+.wave-top-right {
+  top: -150px;
+  right: -150px;
+}
+
+.wave-bottom-right {
+  bottom: -150px;
+  right: -150px;
+}
+
+.portal-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header Section */
+.portal-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.portal-title {
+  font-size: 42px;
+  font-weight: 700;
+  color: #004aad;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.portal-description {
+  font-size: 18px;
+  color: #555;
+  line-height: 1.8;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Main Portal Card */
+.portal-main-card {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  overflow: hidden;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Left Panel - Actions */
+.portal-actions-panel {
+  background: #f8f9fa;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.portal-action-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #ffffff;
+}
+
+.portal-action-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.portal-action-item.active {
+  border-color: #4A90E2;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+}
+
+.action-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(74, 144, 226, 0.1);
+}
+
+.portal-action-item:nth-child(1) .action-icon {
+  background: rgba(74, 144, 226, 0.15);
+}
+
+.portal-action-item:nth-child(2) .action-icon {
+  background: rgba(155, 89, 182, 0.15);
+}
+
+.portal-action-item:nth-child(3) .action-icon {
+  background: rgba(233, 30, 99, 0.15);
+}
+
+.portal-action-item:nth-child(4) .action-icon {
+  background: rgba(231, 76, 60, 0.15);
+}
+
+.action-content {
+  flex: 1;
+}
+
+.action-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.action-description {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.action-arrow {
+  font-size: 20px;
+  color: #666;
+  flex-shrink: 0;
+}
+
+/* Right Panel - Login Form */
+.portal-login-panel {
+  padding: 48px 40px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.login-panel-header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.login-panel-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #004aad;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.login-panel-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 400;
+  margin: 0;
+}
+
+/* Change Role Button - Clean Link Style */
+.portal-login-panel .mb-6 button {
+  position: relative;
+  padding: 0;
+  margin: 0;
+}
+
+.portal-login-panel .mb-6 button:hover {
+  background-color: rgba(0, 74, 173, 0.05);
+}
+
+.portal-login-panel .mb-6 button:active {
+  background-color: rgba(0, 74, 173, 0.08);
+}
+
+.portal-login-panel .mb-6 button span {
+  position: relative;
+}
+
+/* Role Selection Buttons */
+.role-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.role-button {
+  padding: 20px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #374151;
+  min-height: 100px;
+}
+
+.role-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #004aad;
+  background: #f0f7ff;
+}
+
+.role-button:active {
+  transform: translateY(0);
+}
+
+.role-button-icon {
+  font-size: 32px;
+  margin-bottom: 4px;
+}
+
+/* Enhanced Role Selection Styling */
+.portal-login-panel .grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.portal-login-panel button[type="button"] {
+  position: relative;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ripple effect on click */
+.portal-login-panel button[type="button"]::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease-out, height 0.6s ease-out, opacity 0.6s ease-out;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.portal-login-panel button[type="button"]:active::before {
+  width: 300px;
+  height: 300px;
+  opacity: 1;
+}
+
+/* Ensure consistent button heights */
+.portal-login-panel .grid button {
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Icon container animation */
+.portal-login-panel button[type="button"] .relative.z-10 {
+  will-change: transform;
+}
+
+/* Smooth transitions for all interactive elements */
+.portal-login-panel button[type="button"] * {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced focus state */
+.portal-login-panel button[type="button"]:focus-visible {
+  outline: none;
+  ring-width: 4px;
+  ring-offset-width: 2px;
+}
+
+/* Improve text rendering */
+.portal-login-panel button[type="button"] span {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Add subtle border glow on hover */
+@keyframes borderGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 74, 173, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(0, 74, 173, 0.1);
+  }
+}
+
+.portal-login-panel button[type="button"]:hover {
+  animation: borderGlow 2s ease-in-out infinite;
+}
+
+/* Login Method Selector */
+.login-method-selector {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid #e5e7eb;
+  justify-content: center;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  color: #374151;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.radio-option:hover {
+  background-color: #f3f4f6;
+  color: #004aad;
+}
+
+.radio-option input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #004aad;
+  flex-shrink: 0;
+}
+
+.radio-option span {
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Login Form */
+.portal-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.form-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  min-height: 56px;
+}
+
+.form-input-wrapper:focus-within {
+  border-color: #004aad;
+  box-shadow: 0 0 0 4px rgba(0, 74, 173, 0.1);
+  background: #fafbfc;
+}
+
+.form-input-wrapper:hover:not(:focus-within) {
+  border-color: #cbd5e1;
+}
+
+.input-icon {
+  padding: 0 18px;
+  font-size: 18px;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+}
+
+.input-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.form-input-wrapper:focus-within .input-icon {
+  color: #004aad;
+}
+
+.form-input-wrapper input {
+  flex: 1;
+  padding: 16px 16px 16px 0;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  background: transparent;
+  color: #1f2937;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.form-input-wrapper input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.form-input-wrapper.error {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: -20px;
+  margin-left: 4px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 5px;
+}
+
+/* Login Button and Actions */
+.login-form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+  margin-top: 8px;
+}
+
+.login-form-actions button {
+  min-height: 52px;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 14px 24px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.login-form-actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 74, 173, 0.25);
+}
+
+.login-form-actions button:active {
+  transform: translateY(0);
+}
+
+.login-button {
+  background: #004aad;
+  color: #ffffff;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  max-width: 200px;
+}
+
+.login-button:hover {
+  background: #003784;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 74, 173, 0.3);
+}
+
+.login-button:active {
+  transform: translateY(0);
+}
+
+.trouble-login-link {
+  color: #004aad;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: block;
+}
+
+.trouble-login-link:hover {
+  text-decoration: underline;
+  background-color: #f0f7ff;
+  color: #003f8c;
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+  .portal-main-card {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-actions-panel {
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .portal-login-panel {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .portal-page {
+    padding: 40px 15px;
+  }
+
+  .portal-title {
+    font-size: 32px;
+  }
+
+  .portal-description {
+    font-size: 16px;
+  }
+
+  .portal-actions-panel {
+    padding: 20px;
+  }
+
+  .portal-action-item {
+    padding: 15px;
+  }
+
+  .action-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .action-title {
+    font-size: 14px;
+  }
+
+  .action-description {
+    font-size: 12px;
+  }
+
+  .portal-login-panel {
+    padding: 25px;
+  }
+
+  .login-panel-title {
+    font-size: 20px;
+  }
+
+  .login-method-selector {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .login-form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .login-button {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .trouble-login-link {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .portal-title {
+    font-size: 28px;
+  }
+
+  .portal-description {
+    font-size: 14px;
+  }
+
+  .portal-action-item {
+    flex-wrap: wrap;
+  }
+
+  .action-arrow {
+    display: none;
+  }
+}
+
