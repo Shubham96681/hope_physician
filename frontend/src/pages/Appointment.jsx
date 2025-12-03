@@ -88,6 +88,8 @@ const Appointment = () => {
 
   useEffect(() => {
     document.title = "Book Appointment — Hope Physicians";
+    // Scroll to top immediately when component mounts
+    window.scrollTo(0, 0);
   }, []);
 
   // Handle input changes

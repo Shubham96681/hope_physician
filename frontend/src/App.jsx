@@ -2,6 +2,7 @@
 import { Routes, Route } from "react-router-dom";
 import './styles/Layout.css';
 import Layout from "./components/Layout";
+import ScrollToTop from "./components/ScrollToTop";
 import Home from "./pages/Home";
 import Departments from "./pages/Departments";
 import Doctors from "./pages/Doctors";
@@ -60,7 +61,9 @@ import FAQs from './pages/resources/FAQs';
 
 function App() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
@@ -128,7 +131,8 @@ function App() {
       <Route path="/staff/kyc-assistance" element={<KYCAssistance />} />
       <Route path="/staff/appointments" element={<StaffAppointments />} />
       <Route path="/staff/notifications" element={<StaffNotifications />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }
 

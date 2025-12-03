@@ -280,17 +280,19 @@ const Doctors = () => {
                     marginBottom: '20px',
                     flexWrap: 'wrap'
                   }}>
-                    <button 
+                    <Link 
+                      to="/appointment"
                       className="form-btn" 
-                      onClick={() => bookAppointment('Dr. Okonkwo', 'Family Medicine')}
                       style={{
                         padding: '12px 30px',
                         fontSize: '16px',
-                        fontWeight: '600'
+                        fontWeight: '600',
+                        textDecoration: 'none',
+                        display: 'inline-block'
                       }}
                     >
                       Book Appointment
-                    </button>
+                    </Link>
                     <div style={{ display: 'flex', gap: '10px' }}>
                       <a 
                         href="#" 
@@ -338,9 +340,9 @@ const Doctors = () => {
         right: '30px',
         zIndex: 1000
       }}>
-        <button 
+        <Link 
+          to="/appointment"
           className="form-btn"
-          onClick={() => setShowModal(true)}
           style={{
             padding: '12px 30px',
             fontWeight: '600',
@@ -351,12 +353,13 @@ const Doctors = () => {
             gap: '10px',
             minWidth: '200px',
             justifyContent: 'center',
-            animation: 'float 3s ease-in-out infinite'
+            animation: 'float 3s ease-in-out infinite',
+            textDecoration: 'none'
           }}
         >
           <i className="fas fa-calendar-plus"></i>
           <span>Book Appointment</span>
-        </button>
+        </Link>
       </div>
 
       {/* APPOINTMENT MODAL */}
