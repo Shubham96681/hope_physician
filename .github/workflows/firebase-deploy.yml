@@ -132,22 +132,54 @@ jobs:
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/firebase-service-account.json
           chmod 600 /tmp/firebase-service-account.json
+          # Verify JSON is valid
+          if ! python3 -m json.tool /tmp/firebase-service-account.json > /dev/null 2>&1; then
+            echo "❌ Error: Invalid JSON in FIREBASE_SERVICE_ACCOUNT secret"
+            exit 1
+          fi
+          echo "✅ Service account JSON is valid"
 
-      - name: Setup Firebase Project
+      - name: Verify Firebase Project Access
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/firebase-service-account.json
         run: |
+          # Verify project ID is set
+          if [ -z "${{ secrets.FIREBASE_PROJECT_ID }}" ]; then
+            echo "❌ Error: FIREBASE_PROJECT_ID secret is not set"
+            exit 1
+          fi
+          echo "📋 Project ID: ${{ secrets.FIREBASE_PROJECT_ID }}"
+          
           # Create .firebaserc if it doesn't exist
           if [ ! -f .firebaserc ]; then
             echo "{\"projects\":{\"default\":\"${{ secrets.FIREBASE_PROJECT_ID }}\"}}" > .firebaserc
+            echo "✅ Created .firebaserc"
           fi
+          
           # Verify firebase.json exists
           if [ ! -f firebase.json ]; then
             echo "❌ Error: firebase.json not found!"
             exit 1
           fi
-          # Set the project
-          firebase use ${{ secrets.FIREBASE_PROJECT_ID }} --non-interactive
+          echo "✅ firebase.json found"
+          
+          # List available projects to verify access
+          echo "🔍 Verifying Firebase project access..."
+          firebase projects:list || echo "⚠️ Warning: Could not list projects, but continuing..."
+
+      - name: Set Firebase Project
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/firebase-service-account.json
+        run: |
+          firebase use ${{ secrets.FIREBASE_PROJECT_ID }} --non-interactive || {
+            echo "❌ Error: Failed to set Firebase project"
+            echo "Please verify:"
+            echo "1. FIREBASE_PROJECT_ID secret is correct: ${{ secrets.FIREBASE_PROJECT_ID }}"
+            echo "2. FIREBASE_SERVICE_ACCOUNT has access to this project"
+            echo "3. Service account has Firebase Admin permissions"
+            exit 1
+          }
+          echo "✅ Firebase project set to: ${{ secrets.FIREBASE_PROJECT_ID }}"
 
       - name: Install backend functions dependencies
         run: |
