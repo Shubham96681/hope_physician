@@ -11,6 +11,7 @@ prisma/migrations/
 .env
 .env.local
 .env.*.local
+*.env
 
 # Logs
 logs/
@@ -30,4 +31,37 @@ Thumbs.db
 # Build
 dist/
 build/
+
+# Firebase secrets and credentials
+firebase-service-account.json
+*-service-account.json
+service-account*.json
+firebase-adminsdk-*.json
+.firebaserc
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Firebase tokens and keys
+.firebase-token
+firebase-token.txt
+FIREBASE_TOKEN
+*.pem
+*.key
+
+# Firebase configuration (if contains secrets)
+firebase.json
+!firebase.json.example
+
+# Secrets and credentials
+secrets/
+*.secret
+credentials.json
+config.json
+!*.example
+
+# CI/CD secrets (if accidentally committed)
+*.token
+*.key
 
