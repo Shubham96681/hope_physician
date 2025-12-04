@@ -149,20 +149,20 @@ jobs:
             exit 1
           fi
           echo "📋 Project ID: ${{ secrets.FIREBASE_PROJECT_ID }}"
-          
+
           # Create .firebaserc if it doesn't exist
           if [ ! -f .firebaserc ]; then
             echo "{\"projects\":{\"default\":\"${{ secrets.FIREBASE_PROJECT_ID }}\"}}" > .firebaserc
             echo "✅ Created .firebaserc"
           fi
-          
+
           # Verify firebase.json exists
           if [ ! -f firebase.json ]; then
             echo "❌ Error: firebase.json not found!"
             exit 1
           fi
           echo "✅ firebase.json found"
-          
+
           # List available projects to verify access
           echo "🔍 Verifying Firebase project access..."
           firebase projects:list || echo "⚠️ Warning: Could not list projects, but continuing..."
