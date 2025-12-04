@@ -24,7 +24,8 @@ firebase-service-account.json
 *-service-account.json
 service-account*.json
 firebase-adminsdk-*.json
-.firebaserc
+# .firebaserc - Allow (contains only project ID mapping, no secrets)
+# .firebase/ - Ignore (contains local cache)
 .firebase/
 firebase-debug.log
 firestore-debug.log

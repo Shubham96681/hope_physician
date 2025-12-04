@@ -133,11 +133,21 @@ jobs:
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/firebase-service-account.json
           chmod 600 /tmp/firebase-service-account.json
 
-      - name: Authenticate Firebase
+      - name: Setup Firebase Project
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/firebase-service-account.json
         run: |
-          firebase use ${{ secrets.FIREBASE_PROJECT_ID }}
+          # Create .firebaserc if it doesn't exist
+          if [ ! -f .firebaserc ]; then
+            echo "{\"projects\":{\"default\":\"${{ secrets.FIREBASE_PROJECT_ID }}\"}}" > .firebaserc
+          fi
+          # Verify firebase.json exists
+          if [ ! -f firebase.json ]; then
+            echo "❌ Error: firebase.json not found!"
+            exit 1
+          fi
+          # Set the project
+          firebase use ${{ secrets.FIREBASE_PROJECT_ID }} --non-interactive
 
       - name: Install backend functions dependencies
         run: |
