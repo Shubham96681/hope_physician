@@ -1,8 +1,8 @@
 # Dependencies
 node_modules/
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+# package-lock.json - Keep for CI/CD caching and reproducible builds
+# yarn.lock - Keep if using Yarn
+# pnpm-lock.yaml - Keep if using pnpm
 
 # Build outputs
 dist/
