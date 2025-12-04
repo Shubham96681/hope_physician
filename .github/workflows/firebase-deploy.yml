@@ -130,6 +130,8 @@ jobs:
 
       - name: Setup Firebase Service Account
         run: |
+          set -e
+          
           # Write service account JSON
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/firebase-service-account.json
           chmod 600 /tmp/firebase-service-account.json
@@ -164,19 +166,25 @@ jobs:
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/firebase-service-account.json
         run: |
+          set -e
+          
+          PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}"
+          
           # Verify project exists and we have access
           echo "🔍 Verifying Firebase project access..."
-          if ! firebase projects:list --project "${{ secrets.FIREBASE_PROJECT_ID }}" > /dev/null 2>&1; then
-            echo "❌ Error: Cannot access Firebase project: ${{ secrets.FIREBASE_PROJECT_ID }}"
-            echo "Please verify:"
-            echo "1. Project ID is correct: ${{ secrets.FIREBASE_PROJECT_ID }}"
-            echo "2. Service account has Firebase Admin permissions"
-            echo "3. Service account JSON is valid and matches project"
+          if ! firebase projects:list --project "$PROJECT_ID" > /dev/null 2>&1; then
+            echo "❌ Error: Cannot access Firebase project: $PROJECT_ID"
+            echo ""
+            echo "Troubleshooting steps:"
+            echo "1. Verify project ID is correct: $PROJECT_ID"
+            echo "2. Check service account has Firebase Admin permissions"
+            echo "3. Ensure Firebase API is enabled for the project"
+            echo "4. Verify service account JSON is valid and matches project"
             exit 1
           fi
           
           # Create .firebaserc for project context
-          echo "{\"projects\":{\"default\":\"${{ secrets.FIREBASE_PROJECT_ID }}\"}}" > .firebaserc
+          echo "{\"projects\":{\"default\":\"$PROJECT_ID\"}}" > .firebaserc
           
           # Verify firebase.json exists
           if [ ! -f firebase.json ]; then
@@ -185,20 +193,23 @@ jobs:
           fi
           
           echo "✅ Firebase authentication successful"
-          echo "✅ Project access verified: ${{ secrets.FIREBASE_PROJECT_ID }}"
+          echo "✅ Project access verified: $PROJECT_ID"
 
       - name: Install backend functions dependencies
         run: |
           if [ -d "backend/functions" ]; then
             echo "📦 Installing backend functions dependencies..."
             cd backend/functions
-            npm ci
+            npm ci || {
+              echo "⚠️ Warning: npm ci failed, trying npm install"
+              npm install
+            }
             # Generate Prisma client if needed
             if [ -d "prisma" ]; then
-              npx prisma generate
+              npx prisma generate || echo "⚠️ Warning: Prisma generate failed"
             fi
           else
-            echo "⚠️ Warning: backend/functions directory not found - skipping functions deployment"
+            echo "ℹ️ backend/functions directory not found - skipping"
           fi
 
       - name: Deploy to Firebase
@@ -206,25 +217,41 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/firebase-service-account.json
           FIREBASE_FUNCTIONS_REGION: us-central1
         run: |
-          # Use --project flag for explicit project selection (more reliable than firebase use)
+          set -e
+          
+          PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}"
+          DEPLOY_SUCCESS=false
+          
+          # Determine what to deploy with proper error handling
           if [ -d "backend/functions" ] && [ -f "backend/functions/index.js" ]; then
             echo "🚀 Deploying hosting and functions..."
-            firebase deploy \
-              --project "${{ secrets.FIREBASE_PROJECT_ID }}" \
+            if firebase deploy \
+              --project "$PROJECT_ID" \
               --non-interactive \
-              --only hosting,functions || {
-              echo "❌ Deployment failed"
+              --only hosting,functions; then
+              DEPLOY_SUCCESS=true
+            else
+              echo "❌ Deployment failed for hosting and functions"
               exit 1
-            }
+            fi
           else
             echo "🚀 Deploying hosting only (functions not found or not configured)..."
-            firebase deploy \
-              --project "${{ secrets.FIREBASE_PROJECT_ID }}" \
+            if firebase deploy \
+              --project "$PROJECT_ID" \
               --non-interactive \
-              --only hosting || {
-              echo "❌ Deployment failed"
+              --only hosting; then
+              DEPLOY_SUCCESS=true
+            else
+              echo "❌ Deployment failed for hosting"
               exit 1
-            }
+            fi
+          fi
+          
+          if [ "$DEPLOY_SUCCESS" = true ]; then
+            echo ""
+            echo "✅ Deployment successful!"
+            echo "Frontend: https://$PROJECT_ID.web.app"
+            echo "API: https://us-central1-$PROJECT_ID.cloudfunctions.net/api"
           fi
 
       - name: Cleanup
