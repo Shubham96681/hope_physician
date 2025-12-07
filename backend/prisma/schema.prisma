@@ -121,6 +121,8 @@ model Doctor {
   teleConsultations TeleConsultation[]
   patientQueues   PatientQueue[]
   labTests        LabTest[]
+  feedbacks       Feedback[]
+  surgeryCostEstimations SurgeryCostEstimation[]
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -201,6 +203,13 @@ model Patient {
   labTests        LabTest[]
   medicationSchedules MedicationSchedule[]
   emergencyAlerts EmergencyAlert[]
+  insuranceFiles  InsuranceFile[]
+  reminders       Reminder[]
+  chatMessages    ChatMessage[]
+  feedbacks       Feedback[]
+  paymentTransactions PaymentTransaction[]
+  admissionStatuses AdmissionStatus[]
+  surgeryCostEstimations SurgeryCostEstimation[]
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -313,6 +322,7 @@ model Appointment {
   billings        Billing[]
   vitals          PatientVitals[]
   labTests        LabTest[]
+  feedbacks       Feedback[]
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -927,6 +937,7 @@ model Billing {
   // Relations
   patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
   appointment     Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  paymentTransactions PaymentTransaction[]
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -1003,6 +1014,7 @@ model BedAllocation {
   
   // Relations
   patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  admissionStatuses AdmissionStatus[]
   
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -1275,8 +1287,247 @@ model EmergencyAlert {
   @@index([createdAt])
 }
 
+// ============================================
+// PATIENT DASHBOARD MODELS
+// ============================================
+
+// Insurance File Model
+model InsuranceFile {
+  id              String   @id @default(uuid())
+  patientId       String
+  
+  // File Details
+  fileName        String
+  fileUrl         String   // File path/URL
+  fileType        String   // insurance_card, policy_document, claim_form, etc.
+  fileSize        Int?     // Size in bytes
+  
+  // Metadata
+  description     String?
+  uploadedAt      DateTime @default(now())
+  
+  // Relations
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([patientId])
+  @@index([fileType])
+}
+
+// Reminder Model
+model Reminder {
+  id              String   @id @default(uuid())
+  patientId       String
+  
+  // Reminder Details
+  reminderType    String   // medication, appointment, follow_up, other
+  title           String
+  description     String?
+  
+  // Schedule
+  scheduledDate   DateTime
+  scheduledTime   String   // e.g., "08:00"
+  isRecurring     Boolean  @default(false)
+  recurrenceRule  String?  // daily, weekly, monthly, custom
+  
+  // Notification
+  notificationMethod String @default("app") // app, email, sms, all
+  isSent          Boolean  @default(false)
+  sentAt          DateTime?
+  
+  // Status
+  status          String   @default("pending") // pending, sent, completed, cancelled
+  completedAt     DateTime?
+  
+  // Relations
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  medicationScheduleId String? // Link to medication if medication reminder
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([patientId])
+  @@index([scheduledDate])
+  @@index([status])
+  @@index([reminderType])
+}
+
+// Chat Message Model
+model ChatMessage {
+  id              String   @id @default(uuid())
+  patientId       String
+  senderId        String   // Patient ID or Staff ID
+  senderType      String   // patient, staff, doctor, support
+  
+  // Message Details
+  message         String
+  messageType      String   @default("text") // text, image, file, system
+  fileUrl         String?  // For image/file messages
+  
+  // Status
+  isRead          Boolean  @default(false)
+  readAt          DateTime?
+  
+  // Relations
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([patientId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+// Feedback Model
+model Feedback {
+  id              String   @id @default(uuid())
+  patientId       String
+  appointmentId   String?
+  doctorId        String?
+  
+  // Feedback Details
+  feedbackType    String   // doctor, hospital, service, other
+  rating          Int      // 1-5 stars
+  comment         String?
+  
+  // Categories
+  cleanliness     Int?     // 1-5
+  staffBehavior   Int?     // 1-5
+  waitTime        Int?     // 1-5
+  overallExperience Int?   // 1-5
+  
+  // Status
+  status          String   @default("submitted") // submitted, reviewed, responded
+  response        String?
+  respondedBy     String?  // Staff ID
+  respondedAt     DateTime?
+  
+  // Relations
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointment     Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  doctor          Doctor?  @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([appointmentId])
+  @@index([rating])
+  @@index([createdAt])
+}
+
+// Payment Transaction Model
+model PaymentTransaction {
+  id              String   @id @default(uuid())
+  patientId       String
+  billingId       String
+  
+  // Payment Details
+  amount          Float
+  currency        String   @default("USD")
+  paymentMethod   String   // razorpay, stripe, cash, card, online
+  
+  // Gateway Details
+  gatewayOrderId  String?  // Order ID from payment gateway
+  gatewayPaymentId String? // Payment ID from gateway
+  gatewaySignature String? // Gateway signature for verification
+  
+  // Status
+  status          String   @default("pending") // pending, processing, completed, failed, refunded
+  failureReason   String?
+  
+  // Timestamps
+  initiatedAt     DateTime @default(now())
+  completedAt     DateTime?
+  
+  // Relations
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  billing         Billing  @relation(fields: [billingId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([patientId])
+  @@index([billingId])
+  @@index([status])
+  @@index([gatewayOrderId])
+  @@index([gatewayPaymentId])
+}
+
+// Admission Status Model
+model AdmissionStatus {
+  id              String   @id @default(uuid())
+  patientId       String
+  bedAllocationId String?
+  
+  // Admission Details
+  admissionDate   DateTime
+  admissionType   String   // emergency, planned, observation
+  reason          String?
+  
+  // Status Updates
+  currentStatus   String   @default("admitted") // admitted, in_ward, in_icu, discharged, transferred
+  roomNumber      String?
+  wardNumber      String?
+  floor           String?
+  
+  // Discharge
+  dischargeDate   DateTime?
+  dischargeSummary String?
+  
+  // Relations
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  bedAllocation   BedAllocation? @relation(fields: [bedAllocationId], references: [id], onDelete: SetNull)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([patientId])
+  @@index([currentStatus])
+  @@index([admissionDate])
+}
+
+// Surgery Cost Estimation Request Model
+model SurgeryCostEstimation {
+  id              String   @id @default(uuid())
+  patientId       String
+  doctorId        String?
+  
+  // Surgery Details
+  procedureName   String
+  procedureType   String   // minor, major, emergency
+  estimatedDate   DateTime?
+  
+  // Cost Breakdown (JSON)
+  costBreakdown   String?  // JSON: { "surgeon": 5000, "anesthesia": 2000, "room": 1000, ... }
+  estimatedTotal  Float?
+  
+  // Status
+  status          String   @default("pending") // pending, estimated, approved, rejected
+  estimatedBy     String?  // Staff ID
+  estimatedAt     DateTime?
+  notes           String?
+  
+  // Relations
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor          Doctor?  @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([status])
+}
+
 // Update existing models to include new relations
 // Add to Patient model
 // Add to Appointment model
 // Add to Prescription model
+// Add to Billing model
+// Add to Doctor model
 

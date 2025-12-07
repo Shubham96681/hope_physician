@@ -21,6 +21,18 @@ const labRoutes = require('./routes/staff/labRoutes');
 const pharmacyRoutes = require('./routes/staff/pharmacyRoutes');
 const staffManagementRoutes = require('./routes/admin/staffManagementRoutes');
 
+// Patient dashboard routes
+const patientAppointmentRoutes = require('./routes/patient/appointmentRoutes');
+const patientPrescriptionRoutes = require('./routes/patient/prescriptionRoutes');
+const patientReportRoutes = require('./routes/patient/reportRoutes');
+const patientBillingRoutes = require('./routes/patient/billingRoutes');
+const patientPaymentRoutes = require('./routes/patient/paymentRoutes');
+const patientInsuranceRoutes = require('./routes/patient/insuranceRoutes');
+const patientReminderRoutes = require('./routes/patient/reminderRoutes');
+const patientChatRoutes = require('./routes/patient/chatRoutes');
+const patientAdmissionRoutes = require('./routes/patient/admissionRoutes');
+const patientFeedbackRoutes = require('./routes/patient/feedbackRoutes');
+
 const app = express();
 
 // Middlewares
@@ -43,6 +55,18 @@ app.use('/api/staff/nurse', nurseRoutes);
 app.use('/api/staff/lab', labRoutes);
 app.use('/api/staff/pharmacy', pharmacyRoutes);
 app.use('/api/admin/staff', staffManagementRoutes);
+
+// Patient dashboard routes
+app.use('/api/patient/appointments', patientAppointmentRoutes);
+app.use('/api/patient/prescriptions', patientPrescriptionRoutes);
+app.use('/api/patient/reports', patientReportRoutes);
+app.use('/api/patient/billing', patientBillingRoutes);
+app.use('/api/patient/payments', patientPaymentRoutes);
+app.use('/api/patient/insurance', patientInsuranceRoutes);
+app.use('/api/patient/reminders', patientReminderRoutes);
+app.use('/api/patient/chat', patientChatRoutes);
+app.use('/api/patient/admission', patientAdmissionRoutes);
+app.use('/api/patient/feedback', patientFeedbackRoutes);
 
 // Root route
 app.get('/', (req, res) => {
