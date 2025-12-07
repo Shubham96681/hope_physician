@@ -11,6 +11,15 @@ const doctorRoutes = require('./routes/doctorRoutes');
 const authRoutes = require('./routes/authRoutes');
 const patientRoutes = require('./routes/patientRoutes');
 const patientFormRoutes = require('./routes/patientFormRoutes');
+const prescriptionRoutes = require('./routes/prescriptionRoutes');
+const medicalRecordRoutes = require('./routes/medicalRecordRoutes');
+
+// Staff dashboard routes
+const receptionRoutes = require('./routes/staff/receptionRoutes');
+const nurseRoutes = require('./routes/staff/nurseRoutes');
+const labRoutes = require('./routes/staff/labRoutes');
+const pharmacyRoutes = require('./routes/staff/pharmacyRoutes');
+const staffManagementRoutes = require('./routes/admin/staffManagementRoutes');
 
 const app = express();
 
@@ -25,6 +34,15 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/patient-forms', patientFormRoutes);
+app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/api/medical-records', medicalRecordRoutes);
+
+// Staff dashboard routes
+app.use('/api/staff/reception', receptionRoutes);
+app.use('/api/staff/nurse', nurseRoutes);
+app.use('/api/staff/lab', labRoutes);
+app.use('/api/staff/pharmacy', pharmacyRoutes);
+app.use('/api/admin/staff', staffManagementRoutes);
 
 // Root route
 app.get('/', (req, res) => {

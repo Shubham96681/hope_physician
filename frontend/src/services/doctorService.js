@@ -186,3 +186,53 @@ export const getAllAppointments = async (doctorId, filters = {}) => {
   }
 };
 
+/**
+ * Get patient queue for a doctor
+ */
+export const getPatientQueue = async (doctorId) => {
+  try {
+    const response = await axios.get(`${API_BASE}/doctor/${doctorId}/queue`, {
+      timeout: 5000,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching patient queue:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update patient queue status
+ */
+export const updateQueueStatus = async (appointmentId, statusData) => {
+  try {
+    const response = await axios.patch(
+      `${API_BASE}/doctor/queue/${appointmentId}`,
+      statusData,
+      {
+        timeout: 5000,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error updating queue status:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get doctor dashboard analytics
+ */
+export const getDashboardAnalytics = async (doctorId, dateRange = {}) => {
+  try {
+    const response = await axios.get(`${API_BASE}/doctor/${doctorId}/analytics`, {
+      params: dateRange,
+      timeout: 5000,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching dashboard analytics:', error);
+    throw error;
+  }
+};
+
