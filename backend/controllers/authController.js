@@ -123,13 +123,27 @@ const authController = {
         userData.name = `${portalUser.employee.firstName} ${portalUser.employee.lastName}`;
       }
 
+      // Prepare token payload with role-specific IDs
+      const tokenPayload = {
+        id: portalUser.id,
+        email: portalUser.email,
+        role: portalUser.role
+      };
+
+      // Add role-specific IDs to token
+      if (portalUser.doctorId) {
+        tokenPayload.doctorId = userData.doctorId;
+      } else if (portalUser.patientId) {
+        tokenPayload.patientId = portalUser.patientId;
+      } else if (portalUser.staffId) {
+        tokenPayload.staffId = portalUser.staffId;
+      } else if (portalUser.employeeId) {
+        tokenPayload.employeeId = portalUser.employeeId;
+      }
+
       // Generate JWT token
       const token = jwt.sign(
-        { 
-          id: portalUser.id, 
-          email: portalUser.email,
-          role: portalUser.role 
-        },
+        tokenPayload,
         process.env.JWT_SECRET || 'your-secret-key-change-in-production',
         { expiresIn: '8h' }
       );

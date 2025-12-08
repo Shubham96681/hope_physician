@@ -27,6 +27,7 @@ api.interceptors.request.use((config) => {
 
 export const appointmentApi = {
   getAll: (params) => api.get('/', { params }),
+  getById: (id) => api.get(`/${id}`),
   book: (data) => api.post('/', data),
   cancel: (id, reason) => api.delete(`/${id}`, { data: { reason } }),
   reschedule: (id, data) => api.put(`/${id}/reschedule`, data),

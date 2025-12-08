@@ -3,8 +3,7 @@
  * Handles appointment booking, cancellation, rescheduling
  */
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { prisma } = require('../../src/lib/prisma.js');
 
 /**
  * Get patient's appointments
@@ -13,7 +12,11 @@ const getAppointments = async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    const patientId = req.user.patientId || req.user.id;
+    const patientId = req.user.patientId;
+    
+    if (!patientId) {
+      return res.status(400).json({ error: 'Patient ID not found. Please log in again.' });
+    }
 
     const where = { patientId };
     if (status) where.status = status;

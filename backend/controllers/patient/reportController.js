@@ -3,17 +3,27 @@
  * View and download medical reports
  */
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { prisma } = require('../../src/lib/prisma.js');
 
 /**
  * Get patient's medical reports
  */
 const getReports = async (req, res) => {
   try {
+    console.log('📄 Get reports request - req.user:', req.user ? { id: req.user.id, role: req.user.role, patientId: req.user.patientId } : 'UNDEFINED');
+    
     const { page = 1, limit = 10, type } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    const patientId = req.user.patientId || req.user.id;
+    const patientId = req.user?.patientId;
+    
+    if (!patientId) {
+      console.error('❌ Patient ID missing in request:', { user: req.user });
+      return res.status(400).json({ 
+        success: false,
+        error: 'Patient ID not found. Please log in again.',
+        debug: { hasUser: !!req.user, userId: req.user?.id, role: req.user?.role }
+      });
+    }
 
     const where = { patientId };
     if (type) where.recordType = type;
@@ -44,12 +54,31 @@ const getReports = async (req, res) => {
       prisma.medicalRecord.count({ where })
     ]);
 
-    // Parse attachments JSON
-    const reportsWithParsedAttachments = reports.map(report => ({
-      ...report,
-      attachments: report.attachments ? JSON.parse(report.attachments) : [],
-      testResults: report.testResults ? JSON.parse(report.testResults) : null
-    }));
+    // Parse attachments JSON (safely handle null/undefined)
+    const reportsWithParsedAttachments = reports.map(report => {
+      try {
+        return {
+          ...report,
+          attachments: report.attachments 
+            ? (typeof report.attachments === 'string' 
+                ? JSON.parse(report.attachments) 
+                : report.attachments)
+            : [],
+          testResults: report.testResults 
+            ? (typeof report.testResults === 'string' 
+                ? JSON.parse(report.testResults) 
+                : report.testResults)
+            : null
+        };
+      } catch (parseError) {
+        console.error('Error parsing report JSON:', parseError, report.id);
+        return {
+          ...report,
+          attachments: [],
+          testResults: null
+        };
+      }
+    });
 
     res.json({
       success: true,

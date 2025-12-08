@@ -1,10 +1,11 @@
 
 // middlewares/authMiddleware.js
 const jwt = require('jsonwebtoken');
+const { prisma } = require('../src/lib/prisma.js');
 require('dotenv').config();
 
 // Verify JWT token (alias for authenticate)
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
 
   if (!authHeader) {
@@ -19,8 +20,49 @@ const authenticate = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // If patientId is missing from token but role is patient, fetch it from database
+    if (decoded.role === 'patient' && !decoded.patientId) {
+      try {
+        const portalUser = await prisma.portalUser.findUnique({
+          where: { id: decoded.id },
+          select: { patientId: true }
+        });
+        if (portalUser?.patientId) {
+          decoded.patientId = portalUser.patientId;
+          console.log(`✅ Fetched patientId ${portalUser.patientId} for user ${decoded.id}`);
+        } else {
+          console.warn(`⚠️ No patientId found for user ${decoded.id} with role patient`);
+        }
+      } catch (dbError) {
+        console.error('Error fetching patientId from database:', dbError);
+        // Continue without patientId - controller will handle it
+      }
+    }
+    
+    // Similar for other roles
+    if (decoded.role === 'doctor' && !decoded.doctorId) {
+      try {
+        const portalUser = await prisma.portalUser.findUnique({
+          where: { id: decoded.id },
+          select: { doctorId: true }
+        });
+        if (portalUser?.doctorId) {
+          decoded.doctorId = portalUser.doctorId;
+        }
+      } catch (dbError) {
+        console.error('Error fetching doctorId from database:', dbError);
+      }
+    }
+    
     req.user = decoded; // Store decoded user info in request
     req.admin = decoded; // Also store as admin for backward compatibility
+    
+    // Debug logging
+    if (decoded.role === 'patient') {
+      console.log(`🔐 Authenticated patient: userId=${decoded.id}, patientId=${decoded.patientId || 'NOT SET'}`);
+    }
+    
     next(); // Proceed to protected route
   } catch (error) {
     console.error('Token verification error:', error);

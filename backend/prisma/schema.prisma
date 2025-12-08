@@ -867,7 +867,7 @@ model TeleConsultation {
 // Patient Queue Model (Real-time queue status)
 model PatientQueue {
   id              String   @id @default(uuid())
-  appointmentId   String
+  appointmentId   String   @unique
   patientId       String
   doctorId         String
   
@@ -1260,6 +1260,7 @@ model RolePermission {
 model EmergencyAlert {
   id              String   @id @default(uuid())
   patientId       String?
+  patient         Patient? @relation(fields: [patientId], references: [id], onDelete: Cascade)
   triggeredBy     String   // Staff ID
   alertType       String   @default("medical") // medical, cardiac, respiratory, fall, other
   

@@ -3,8 +3,7 @@
  * Handle real-time chat with support
  */
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { prisma } = require('../../src/lib/prisma.js');
 
 /**
  * Get chat messages

@@ -3,8 +3,7 @@
  * Validates user roles and permissions for protected routes
  */
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { prisma } = require('../src/lib/prisma.js');
 
 /**
  * Middleware to check if user has required role(s)
@@ -13,7 +12,10 @@ const prisma = new PrismaClient();
 const requireRole = (allowedRoles) => {
   return async (req, res, next) => {
     try {
+      console.log('🔐 Role middleware - req.user:', req.user ? { id: req.user.id, role: req.user.role } : 'UNDEFINED');
+      
       if (!req.user || !req.user.id) {
+        console.error('❌ Role middleware - No user in request');
         return res.status(401).json({ 
           success: false, 
           message: 'Authentication required' 
@@ -21,12 +23,15 @@ const requireRole = (allowedRoles) => {
       }
 
       const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+      console.log('🔐 Checking roles:', roles, 'for user:', req.user.id);
       
       // Get user role from PortalUser
       const portalUser = await prisma.portalUser.findUnique({
         where: { id: req.user.id },
         select: { role: true }
       });
+      
+      console.log('🔐 PortalUser found:', portalUser ? { role: portalUser.role } : 'NOT FOUND');
 
       if (!portalUser) {
         return res.status(401).json({ 
@@ -46,10 +51,14 @@ const requireRole = (allowedRoles) => {
       req.user.role = portalUser.role;
       next();
     } catch (error) {
-      console.error('Role middleware error:', error);
+      console.error('❌ Role middleware error:', error);
+      console.error('Error stack:', error.stack);
+      console.error('Request user:', req.user);
       res.status(500).json({ 
         success: false, 
-        message: 'Error checking user role' 
+        message: 'Error checking user role',
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   };
@@ -114,10 +123,13 @@ const requirePermission = (resource, action) => {
       req.user.role = portalUser.role;
       next();
     } catch (error) {
-      console.error('Permission middleware error:', error);
+      console.error('❌ Permission middleware error:', error);
+      console.error('Error stack:', error.stack);
       res.status(500).json({ 
         success: false, 
-        message: 'Error checking permissions' 
+        message: 'Error checking permissions',
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   };

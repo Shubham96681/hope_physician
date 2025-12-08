@@ -3,17 +3,27 @@
  * View prescriptions and medication details
  */
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { prisma } = require('../../src/lib/prisma.js');
 
 /**
  * Get patient's prescriptions
  */
 const getPrescriptions = async (req, res) => {
   try {
+    console.log('💊 Get prescriptions request - req.user:', req.user ? { id: req.user.id, role: req.user.role, patientId: req.user.patientId } : 'UNDEFINED');
+    
     const { page = 1, limit = 10 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    const patientId = req.user.patientId || req.user.id;
+    const patientId = req.user?.patientId;
+    
+    if (!patientId) {
+      console.error('❌ Patient ID missing in request:', { user: req.user });
+      return res.status(400).json({ 
+        success: false,
+        error: 'Patient ID not found. Please log in again.',
+        debug: { hasUser: !!req.user, userId: req.user?.id, role: req.user?.role }
+      });
+    }
 
     const [prescriptions, total] = await Promise.all([
       prisma.prescription.findMany({
@@ -43,11 +53,25 @@ const getPrescriptions = async (req, res) => {
       prisma.prescription.count({ where: { patientId } })
     ]);
 
-    // Parse medications JSON
-    const prescriptionsWithParsedMeds = prescriptions.map(prescription => ({
-      ...prescription,
-      medications: JSON.parse(prescription.medications)
-    }));
+    // Parse medications JSON (safely handle null/undefined)
+    const prescriptionsWithParsedMeds = prescriptions.map(prescription => {
+      try {
+        return {
+          ...prescription,
+          medications: prescription.medications 
+            ? (typeof prescription.medications === 'string' 
+                ? JSON.parse(prescription.medications) 
+                : prescription.medications)
+            : []
+        };
+      } catch (parseError) {
+        console.error('Error parsing medications JSON:', parseError, prescription.id);
+        return {
+          ...prescription,
+          medications: []
+        };
+      }
+    });
 
     res.json({
       success: true,

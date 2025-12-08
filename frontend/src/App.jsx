@@ -32,7 +32,17 @@ import PatientProfile from "./pages/doctor/PatientProfile";
 // Patient Pages
 import PatientDashboard from "./pages/patient/PatientDashboard";
 import BookAppointment from "./pages/patient/BookAppointment";
+import Appointments from "./pages/patient/Appointments";
+import Prescriptions from "./pages/patient/Prescriptions";
+import PatientReports from "./pages/patient/Reports";
+import Billing from "./pages/patient/Billing";
+import PatientInsurance from "./pages/patient/Insurance";
+import Chat from "./pages/patient/Chat";
+import Admission from "./pages/patient/Admission";
 import KYCDocuments from "./pages/patient/KYCDocuments";
+import Profile from "./pages/patient/Profile";
+import AppointmentDetail from "./pages/patient/AppointmentDetail";
+import PatientLayout from "./components/patient/PatientLayout";
 
 // Staff Pages
 import StaffDashboard from "./pages/staff/StaffDashboard";
@@ -117,12 +127,18 @@ function App() {
       <Route path="/doctor/notifications" element={<DoctorDashboard />} />
 
       {/* Patient Routes */}
-      <Route path="/patient" element={<PatientDashboard />} />
-      <Route path="/patient/appointments" element={<PatientDashboard />} />
-      <Route path="/patient/book-appointment" element={<BookAppointment />} />
-      <Route path="/patient/profile" element={<PatientDashboard />} />
-      <Route path="/patient/kyc-documents" element={<KYCDocuments />} />
-      <Route path="/patient/notifications" element={<PatientDashboard />} />
+      <Route path="/patient" element={<PatientLayout><PatientDashboard /></PatientLayout>} />
+      <Route path="/patient/appointments" element={<PatientLayout><Appointments /></PatientLayout>} />
+      <Route path="/patient/appointments/:id" element={<PatientLayout><AppointmentDetail /></PatientLayout>} />
+      <Route path="/patient/appointments/book" element={<PatientLayout><BookAppointment /></PatientLayout>} />
+      <Route path="/patient/prescriptions" element={<PatientLayout><Prescriptions /></PatientLayout>} />
+      <Route path="/patient/reports" element={<PatientLayout><PatientReports /></PatientLayout>} />
+      <Route path="/patient/billing" element={<PatientLayout><Billing /></PatientLayout>} />
+      <Route path="/patient/insurance" element={<PatientLayout><PatientInsurance /></PatientLayout>} />
+      <Route path="/patient/chat" element={<PatientLayout><Chat /></PatientLayout>} />
+      <Route path="/patient/admission" element={<PatientLayout><Admission /></PatientLayout>} />
+      <Route path="/patient/profile" element={<PatientLayout><Profile /></PatientLayout>} />
+      <Route path="/patient/kyc-documents" element={<PatientLayout><KYCDocuments /></PatientLayout>} />
 
       {/* Staff Routes */}
       <Route path="/staff" element={<StaffDashboard />} />

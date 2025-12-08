@@ -3,17 +3,27 @@
  * View bills and payment history
  */
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { prisma } = require('../../src/lib/prisma.js');
 
 /**
  * Get patient's bills
  */
 const getBills = async (req, res) => {
   try {
+    console.log('📋 Get bills request - req.user:', req.user ? { id: req.user.id, role: req.user.role, patientId: req.user.patientId } : 'UNDEFINED');
+    
     const { page = 1, limit = 10, paymentStatus } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    const patientId = req.user.patientId || req.user.id;
+    const patientId = req.user?.patientId;
+    
+    if (!patientId) {
+      console.error('❌ Patient ID missing in request:', { user: req.user });
+      return res.status(400).json({ 
+        success: false,
+        error: 'Patient ID not found. Please log in again.',
+        debug: { hasUser: !!req.user, userId: req.user?.id, role: req.user?.role }
+      });
+    }
 
     const where = { patientId };
     if (paymentStatus) where.paymentStatus = paymentStatus;
@@ -41,10 +51,10 @@ const getBills = async (req, res) => {
       prisma.billing.count({ where })
     ]);
 
-    // Parse items JSON
+    // Parse items JSON (safely handle null/undefined)
     const billsWithParsedItems = bills.map(bill => ({
       ...bill,
-      items: JSON.parse(bill.items)
+      items: bill.items ? (typeof bill.items === 'string' ? JSON.parse(bill.items) : bill.items) : []
     }));
 
     res.json({

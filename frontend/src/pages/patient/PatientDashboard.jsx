@@ -57,9 +57,16 @@ const PatientDashboard = () => {
       setPrescriptions(prescriptionsRes.data.data || []);
       setReports(reportsRes.data.data || []);
 
+      // Calculate stats from loaded data
+      const upcoming = (appointmentsRes.data.data || []).filter(apt => 
+        new Date(apt.date) >= new Date() && 
+        ['scheduled', 'confirmed'].includes(apt.status)
+      );
+      const pending = (billsRes.data.data || []).filter(bill => bill.paymentStatus !== 'paid');
+
       setStats({
-        upcomingAppointments: upcomingAppointments.length,
-        pendingBills: pendingBills.length,
+        upcomingAppointments: upcoming.length,
+        pendingBills: pending.length,
         totalBills: billsRes.data.data?.length || 0,
         recentPrescriptions: prescriptionsRes.data.data?.length || 0
       });
@@ -211,11 +218,20 @@ const PatientDashboard = () => {
             View All
           </button>
         </div>
-        <DataTable
-          data={upcomingAppointments.slice(0, 5)}
-          columns={appointmentColumns}
-          pagination={false}
-        />
+        {appointments.length > 0 ? (
+          <DataTable
+            data={appointments.filter(apt => 
+              new Date(apt.date) >= new Date() && 
+              ['scheduled', 'confirmed'].includes(apt.status)
+            ).slice(0, 5)}
+            columns={appointmentColumns}
+            pagination={false}
+          />
+        ) : (
+          <div className="bg-white p-8 rounded-lg shadow text-center text-gray-500">
+            No upcoming appointments. <button onClick={() => navigate('/patient/appointments/book')} className="text-blue-600 hover:text-blue-700 underline">Book one now</button>
+          </div>
+        )}
       </div>
 
       {/* Recent Prescriptions */}
