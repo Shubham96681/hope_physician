@@ -3,7 +3,15 @@ import DashboardLayout from '../../components/portal/DashboardLayout';
 import Card from '../../components/shared/Card';
 import Badge from '../../components/shared/Badge';
 import Button from '../../components/shared/Button';
+import toast from 'react-hot-toast';
 import { FaCalendarAlt, FaSearch, FaFilter, FaSpinner, FaClock, FaUserMd, FaUser } from 'react-icons/fa';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+const getAuthToken = () => {
+  return localStorage.getItem('token');
+};
 
 const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -18,44 +26,36 @@ const Appointments = () => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      // Mock appointments data
-      setTimeout(() => {
-        setAppointments([
-          {
-            id: 1,
-            patient: 'John Doe',
-            doctor: 'Dr. Okonkwo',
-            date: '2024-01-20',
-            time: '10:00 AM',
-            type: 'Follow-up',
-            status: 'scheduled',
-            phone: '(252) 555-0101'
-          },
-          {
-            id: 2,
-            patient: 'Jane Smith',
-            doctor: 'Dr. Williams',
-            date: '2024-01-20',
-            time: '11:30 AM',
-            type: 'Consultation',
-            status: 'scheduled',
-            phone: '(252) 555-0102'
-          },
-          {
-            id: 3,
-            patient: 'Mike Johnson',
-            doctor: 'Dr. Okonkwo',
-            date: '2024-01-21',
-            time: '02:00 PM',
-            type: 'Annual Checkup',
-            status: 'scheduled',
-            phone: '(252) 555-0103'
-          }
-        ]);
-        setLoading(false);
-      }, 500);
+      const token = getAuthToken();
+      const response = await axios.get(`${API_URL}/appointments`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        params: {
+          limit: 100
+        }
+      });
+      
+      const appointmentsData = response.data?.data || [];
+      
+      // Format appointments for display
+      const formattedAppointments = appointmentsData.map(apt => ({
+        id: apt.id,
+        patient: `${apt.patient?.firstName || ''} ${apt.patient?.lastName || ''}`.trim(),
+        doctor: `${apt.doctor?.firstName || ''} ${apt.doctor?.lastName || ''}`.trim() || 'N/A',
+        date: apt.appointmentDate,
+        time: apt.appointmentTime,
+        type: apt.appointmentType || 'Consultation',
+        status: apt.status,
+        phone: apt.patient?.phone || 'N/A'
+      }));
+      
+      setAppointments(formattedAppointments);
     } catch (error) {
       console.error('Failed to fetch appointments:', error);
+      toast.error('Failed to load appointments');
+      setAppointments([]);
+    } finally {
       setLoading(false);
     }
   };

@@ -71,12 +71,26 @@ const StaffDashboard = () => {
         staffService.getKYCAssistance()
       ]);
       
-      setStats(statsData);
+      // Handle stats data format
+      setStats({
+        tasksCompleted: statsData?.tasksCompleted || 0,
+        tasksPending: statsData?.tasksPending || 0,
+        kycPending: statsData?.kycPending || 0
+      });
+      
       setTasks(tasksData.data || []);
       setKycAssistance(kycData.data || []);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       toast.error('Failed to load dashboard data');
+      // Set default values on error
+      setStats({
+        tasksCompleted: 0,
+        tasksPending: 0,
+        kycPending: 0
+      });
+      setTasks([]);
+      setKycAssistance([]);
     } finally {
       setLoading(false);
     }
@@ -567,19 +581,19 @@ const StaffDashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                   <div>
                     <p className="text-gray-500">Name:</p>
-                    <p className="font-medium text-gray-900">{selectedKYC.patient}</p>
+                    <p className="font-medium text-gray-900">{selectedKYC.patient || 'Unknown Patient'}</p>
                   </div>
                   <div>
                     <p className="text-gray-500">Patient ID:</p>
-                    <p className="font-medium text-gray-900">{selectedKYC.patientId}</p>
+                    <p className="font-medium text-gray-900">{selectedKYC.patientId || 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-gray-500">Phone:</p>
-                    <p className="font-medium text-gray-900">{selectedKYC.patientPhone}</p>
+                    <p className="font-medium text-gray-900">{selectedKYC.patientPhone || 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-gray-500">Email:</p>
-                    <p className="font-medium text-gray-900">{selectedKYC.patientEmail}</p>
+                    <p className="font-medium text-gray-900">{selectedKYC.patientEmail || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -592,23 +606,30 @@ const StaffDashboard = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Submitted:</span>
-                    <span className="font-medium text-gray-900">{selectedKYC.submitted}</span>
+                    <span className="font-medium text-gray-900">{selectedKYC.submitted || (selectedKYC.submittedDate ? new Date(selectedKYC.submittedDate).toLocaleDateString() : 'N/A')}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Status:</span>
-                    <Badge variant="warning">{selectedKYC.status}</Badge>
+                    <Badge variant="warning">{selectedKYC.status || 'pending'}</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Documents:</span>
-                    <span className="font-medium text-gray-900">{selectedKYC.documents} uploaded</span>
+                    <span className="font-medium text-gray-900">{selectedKYC.documents || 0} uploaded</span>
                   </div>
-                  {selectedKYC.documentsList && (
+                  {selectedKYC.fullKYC && (
                     <div className="mt-3">
                       <p className="text-gray-500 mb-2">Document Types:</p>
                       <div className="flex flex-wrap gap-2">
-                        {selectedKYC.documentsList.map((doc, idx) => (
-                          <Badge key={idx} variant="info">{doc}</Badge>
-                        ))}
+                        {selectedKYC.fullKYC.salarySlip1 && <Badge variant="info">Salary Slip 1</Badge>}
+                        {selectedKYC.fullKYC.salarySlip2 && <Badge variant="info">Salary Slip 2</Badge>}
+                        {selectedKYC.fullKYC.salarySlip3 && <Badge variant="info">Salary Slip 3</Badge>}
+                        {selectedKYC.fullKYC.cancelledCheque && <Badge variant="info">Cancelled Cheque</Badge>}
+                        {selectedKYC.fullKYC.passbook && <Badge variant="info">Passbook</Badge>}
+                        {selectedKYC.fullKYC.aadhaarFront && <Badge variant="info">Aadhaar Front</Badge>}
+                        {selectedKYC.fullKYC.aadhaarBack && <Badge variant="info">Aadhaar Back</Badge>}
+                        {selectedKYC.fullKYC.educationalDoc1 && <Badge variant="info">Educational Doc 1</Badge>}
+                        {selectedKYC.fullKYC.educationalDoc2 && <Badge variant="info">Educational Doc 2</Badge>}
+                        {selectedKYC.fullKYC.educationalDoc3 && <Badge variant="info">Educational Doc 3</Badge>}
                       </div>
                     </div>
                   )}

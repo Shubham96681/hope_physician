@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { staffApi } from '../api/staff/staffApi';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -87,141 +88,120 @@ const MOCK_KYC_ASSISTANCE = [
 
 export const getStaffDashboardStats = async () => {
   try {
-    const response = await axios.get(`${API_BASE}/staff/stats`, { timeout: 3000 });
-    return response.data;
+    const response = await staffApi.getStats();
+    return response.data?.data || response.data;
   } catch (error) {
-    if (error.code === 'ECONNREFUSED' || error.response?.status === 404 || error.message.includes('Network Error')) {
-      console.warn('API not available, using mock staff stats');
-      return {
-        tasksCompleted: 12,
-        tasksPending: 5,
-        kycPending: 3
-      };
-    }
+    console.error('Failed to fetch staff stats:', error);
     throw error;
   }
 };
 
 export const getTasks = async (params = {}) => {
   try {
-    const response = await axios.get(`${API_BASE}/staff/tasks`, { params, timeout: 3000 });
-    return response.data;
+    const response = await staffApi.getTasks(params);
+    return {
+      data: response.data?.data || [],
+      total: response.data?.pagination?.total || 0
+    };
   } catch (error) {
-    if (error.code === 'ECONNREFUSED' || error.response?.status === 404 || error.message.includes('Network Error')) {
-      console.warn('API not available, using mock tasks data');
-      return {
-        data: MOCK_TASKS,
-        total: MOCK_TASKS.length
-      };
-    }
-    throw error;
+    console.error('Failed to fetch tasks:', error);
+    // Return empty array on error
+    return {
+      data: [],
+      total: 0
+    };
   }
 };
 
 export const startTask = async (taskId) => {
   try {
-    const response = await axios.post(`${API_BASE}/staff/tasks/${taskId}/start`, {}, { timeout: 3000 });
+    const response = await staffApi.startTask(taskId);
     return response.data;
   } catch (error) {
-    if (error.code === 'ECONNREFUSED' || error.response?.status === 404 || error.message.includes('Network Error')) {
-      console.warn('API not available, using mock task start response');
-      return { success: true, message: 'Task started successfully' };
-    }
+    console.error('Failed to start task:', error);
     throw error;
   }
 };
 
 export const completeTask = async (taskId) => {
   try {
-    const response = await axios.post(`${API_BASE}/staff/tasks/${taskId}/complete`, {}, { timeout: 3000 });
+    const response = await staffApi.completeTask(taskId);
     return response.data;
   } catch (error) {
-    if (error.code === 'ECONNREFUSED' || error.response?.status === 404 || error.message.includes('Network Error')) {
-      console.warn('API not available, using mock task complete response');
-      return { success: true, message: 'Task completed successfully' };
-    }
+    console.error('Failed to complete task:', error);
     throw error;
   }
 };
 
 export const getKYCAssistance = async (params = {}) => {
   try {
-    const response = await axios.get(`${API_BASE}/staff/kyc-assistance`, { params, timeout: 3000 });
-    return response.data;
+    const response = await staffApi.getKYCAssistance(params);
+    return {
+      data: response.data?.data || [],
+      total: response.data?.pagination?.total || 0
+    };
   } catch (error) {
-    if (error.code === 'ECONNREFUSED' || error.response?.status === 404 || error.message.includes('Network Error')) {
-      console.warn('API not available, using mock KYC assistance data');
-      return {
-        data: MOCK_KYC_ASSISTANCE,
-        total: MOCK_KYC_ASSISTANCE.length
-      };
-    }
-    throw error;
+    console.error('Failed to fetch KYC assistance:', error);
+    // Return empty array on error
+    return {
+      data: [],
+      total: 0
+    };
   }
 };
 
 export const assistKYC = async (kycId, notes = '') => {
   try {
-    const response = await axios.post(`${API_BASE}/staff/kyc-assistance/${kycId}/assist`, { notes }, { timeout: 3000 });
+    const response = await staffApi.assistKYC(kycId, { notes });
     return response.data;
   } catch (error) {
-    if (error.code === 'ECONNREFUSED' || error.response?.status === 404 || error.message.includes('Network Error')) {
-      console.warn('API not available, using mock KYC assist response');
-      return { success: true, message: 'KYC assistance provided successfully' };
-    }
+    console.error('Failed to assist KYC:', error);
     throw error;
   }
 };
 
-export const checkIn = async () => {
+export const checkIn = async (data = {}) => {
   try {
-    const response = await axios.post(`${API_BASE}/staff/attendance/check-in`, {}, { timeout: 3000 });
+    const response = await staffApi.checkIn(data);
     return response.data;
   } catch (error) {
-    if (error.code === 'ECONNREFUSED' || error.response?.status === 404 || error.message.includes('Network Error')) {
-      console.warn('API not available, using mock check-in response');
-      return { 
-        success: true, 
-        message: 'Checked in successfully',
-        checkInTime: new Date().toISOString()
-      };
-    }
+    console.error('Failed to check in:', error);
     throw error;
   }
 };
 
-export const checkOut = async () => {
+export const checkOut = async (data = {}) => {
   try {
-    const response = await axios.post(`${API_BASE}/staff/attendance/check-out`, {}, { timeout: 3000 });
+    const response = await staffApi.checkOut(data);
     return response.data;
   } catch (error) {
-    if (error.code === 'ECONNREFUSED' || error.response?.status === 404 || error.message.includes('Network Error')) {
-      console.warn('API not available, using mock check-out response');
-      return { 
-        success: true, 
-        message: 'Checked out successfully',
-        checkOutTime: new Date().toISOString(),
-        hoursWorked: 8.5
-      };
-    }
+    console.error('Failed to check out:', error);
     throw error;
   }
 };
 
 export const getAttendanceStatus = async () => {
   try {
-    const response = await axios.get(`${API_BASE}/staff/attendance/status`, { timeout: 3000 });
+    const response = await staffApi.getAttendanceStatus();
     return response.data;
   } catch (error) {
-    if (error.code === 'ECONNREFUSED' || error.response?.status === 404 || error.message.includes('Network Error')) {
-      console.warn('API not available, using mock attendance status');
-      const todayCheckIn = localStorage.getItem('checkInTime');
-      return {
-        checkedIn: !!todayCheckIn,
-        checkInTime: todayCheckIn || null,
-        checkOutTime: localStorage.getItem('checkOutTime') || null
-      };
-    }
+    console.error('Failed to fetch attendance status:', error);
+    // Fallback to localStorage
+    const todayCheckIn = localStorage.getItem('checkInTime');
+    return {
+      checkedIn: !!todayCheckIn,
+      checkInTime: todayCheckIn || null,
+      checkOutTime: localStorage.getItem('checkOutTime') || null
+    };
+  }
+};
+
+export const getAttendanceHistory = async (params = {}) => {
+  try {
+    const response = await staffApi.getAttendanceHistory(params);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch attendance history:', error);
     throw error;
   }
 };

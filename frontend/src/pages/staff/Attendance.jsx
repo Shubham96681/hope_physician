@@ -21,6 +21,9 @@ const Attendance = () => {
 
   useEffect(() => {
     fetchAttendanceStatus();
+  }, []);
+
+  useEffect(() => {
     fetchAttendanceHistory();
   }, [selectedDate]);
 
@@ -38,36 +41,28 @@ const Attendance = () => {
   const fetchAttendanceHistory = async () => {
     try {
       setLoading(true);
-      // Mock attendance history
-      setAttendanceHistory([
-        {
-          id: 1,
-          date: '2024-01-19',
-          checkIn: '09:00 AM',
-          checkOut: '05:30 PM',
-          hours: 8.5,
-          status: 'present'
-        },
-        {
-          id: 2,
-          date: '2024-01-18',
-          checkIn: '08:45 AM',
-          checkOut: '05:15 PM',
-          hours: 8.5,
-          status: 'present'
-        },
-        {
-          id: 3,
-          date: '2024-01-17',
-          checkIn: '09:15 AM',
-          checkOut: '05:45 PM',
-          hours: 8.5,
-          status: 'present'
-        }
-      ]);
+      const params = {};
+      if (selectedDate) {
+        params.dateFrom = selectedDate;
+        params.dateTo = selectedDate;
+      }
+      const data = await staffService.getAttendanceHistory(params);
+      
+      // Format attendance records for display
+      const formattedHistory = (data.data || []).map(record => ({
+        id: record.id,
+        date: new Date(record.checkInTime).toISOString().split('T')[0],
+        checkIn: record.checkInTime ? new Date(record.checkInTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : null,
+        checkOut: record.checkOutTime ? new Date(record.checkOutTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : null,
+        hours: record.workingHours || null,
+        status: record.status || 'present'
+      }));
+      
+      setAttendanceHistory(formattedHistory);
     } catch (error) {
       console.error('Failed to fetch attendance history:', error);
       toast.error('Failed to load attendance history');
+      setAttendanceHistory([]);
     } finally {
       setLoading(false);
     }
