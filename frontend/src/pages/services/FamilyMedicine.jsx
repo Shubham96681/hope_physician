@@ -595,7 +595,7 @@ const FamilyMedicine = () => {
       </section>
 
       {/* BENEFITS */}
-      <section className="relative overflow-hidden py-16 md:py-20 reveal-on-scroll bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-slate-50">
+      <section className="relative overflow-hidden py-16 md:py-20 reveal-on-scroll revealed bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-slate-50">
         <div className="pointer-events-none absolute inset-0">
           <span
             className="absolute -left-24 top-6 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl"
