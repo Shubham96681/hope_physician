@@ -44,7 +44,7 @@
   transform: translateY(-10px);
   transition: all 0.3s ease;
   z-index: 1000;
-  
+
   /* IMPORTANT: Reset list styles */
   list-style: none;
   padding: 0;
@@ -73,12 +73,12 @@
 }
 
 /* Show Dropdown on Hover */
+/* legacy hover kept for non-tailwind parts */
 .dropdown:hover .dropdown-menu {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
-
 .dropdown:hover .arrow {
   transform: rotate(180deg);
 }
