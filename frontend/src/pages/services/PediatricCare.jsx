@@ -43,6 +43,72 @@ const pediatricServices = [
   },
 ];
 
+const pediatricWhy = [
+  {
+    key: 'friendly',
+    title: 'Child-Friendly Environment',
+    copy: 'Our clinic is designed to make children feel comfortable and safe during their visits.',
+    tone: 'blue',
+  },
+  {
+    key: 'specialists',
+    title: 'Pediatric Specialists',
+    copy: 'Board-certified pediatricians with expertise in child health and development.',
+    tone: 'blue',
+  },
+  {
+    key: 'growth',
+    title: 'Growth Monitoring',
+    copy: "Regular tracking of your child's growth, development, and milestones to ensure healthy progress.",
+    tone: 'blue',
+  },
+  {
+    key: 'preventive',
+    title: 'Preventive Focus',
+    copy: 'Emphasis on preventive care, vaccinations, and early intervention to keep children healthy.',
+    tone: 'rose',
+  },
+];
+
+const renderWhyIcon = (key, tone = 'blue') => {
+  const stroke = tone === 'rose' ? '#fb7185' : '#93c5fd';
+  switch (key) {
+    case 'friendly':
+      return (
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.5" />
+          <path d="M5 20a7 7 0 0 1 14 0" />
+        </svg>
+      );
+    case 'specialists':
+      return (
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="7" r="3" />
+          <path d="M5.5 21v-1a6.5 6.5 0 0 1 13 0v1" />
+          <path d="M10 11c-1.5.5-2.5 1.5-3 3" />
+          <path d="M14 11c1.5.5 2.5 1.5 3 3" />
+        </svg>
+      );
+    case 'growth':
+      return (
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M3 3v18h18" />
+          <path d="M7 15l4-4 4 4 5-7" />
+          <path d="M16 8h3v3" />
+        </svg>
+      );
+    case 'preventive':
+      return (
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M12 3 4 7v5c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V7l-8-4Z" />
+          <path d="M10 12.5 12 14l3-3.5" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+};
+
 const renderServiceIcon = (icon) => {
   const stroke = '#a5b4fc';
   switch (icon) {
@@ -203,38 +269,41 @@ const PediatricCare = () => {
       </section>
 
       {/* BENEFITS */}
-      <section className="section">
-        <div className="container">
-          <h2 className="section-title center">Why Choose Our Pediatric Care?</h2>
-          <div className="about-features" style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <div className="feature-box">
-              <div className="feature-icon">👶</div>
-              <div>
-                <h3>Child-Friendly Environment</h3>
-                <p>Our clinic is designed to make children feel comfortable and safe during their visits.</p>
+      <section className="relative overflow-hidden py-16 md:py-20 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 text-slate-50">
+        <div className="pointer-events-none absolute inset-0">
+          <span className="absolute -left-24 top-6 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl" aria-hidden="true"></span>
+          <span className="absolute right-0 bottom-0 h-80 w-80 rounded-full bg-indigo-500/18 blur-3xl" aria-hidden="true"></span>
+          <span className="absolute inset-8 rounded-3xl border border-white/5 opacity-40" aria-hidden="true"></span>
+        </div>
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-3 mb-10">
+            <span className="inline-flex items-center gap-2 rounded-full bg-blue-500/15 text-blue-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+              Trusted pediatric care
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold text-white">
+              Why Choose Our Pediatric Care?
+            </h2>
+            <p className="text-slate-200 text-lg leading-relaxed max-w-2xl mx-auto">
+              Specialized care tailored to children with a focus on safety, comfort, and healthy development.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {pediatricWhy.map((card) => (
+              <div
+                key={card.key}
+                className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur p-5 shadow-xl transition duration-200 hover:-translate-y-1 hover:shadow-2xl">
+                <div className="flex items-center justify-center mb-3">
+                  {renderWhyIcon(card.key, card.tone)}
+                </div>
+                <h3 className="text-lg font-semibold text-white text-center">
+                  {card.title}
+                </h3>
+                <p className="text-slate-200 text-center mt-2">
+                  {card.copy}
+                </p>
               </div>
-            </div>
-            <div className="feature-box">
-              <div className="feature-icon">👨‍⚕️</div>
-              <div>
-                <h3>Pediatric Specialists</h3>
-                <p>Board-certified pediatricians with expertise in child health and development.</p>
-              </div>
-            </div>
-            <div className="feature-box">
-              <div className="feature-icon">📊</div>
-              <div>
-                <h3>Growth Monitoring</h3>
-                <p>Regular tracking of your child's growth, development, and milestones to ensure healthy progress.</p>
-              </div>
-            </div>
-            <div className="feature-box">
-              <div className="feature-icon">🛡️</div>
-              <div>
-                <h3>Preventive Focus</h3>
-                <p>Emphasis on preventive care, vaccinations, and early intervention to keep children healthy.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
