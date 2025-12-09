@@ -38,6 +38,87 @@ const Home = () => {
     return () => observer.disconnect();
   }, []);
 
+  const consultationItems = [
+    {
+      key: "hours",
+      title: "Consultation Hours",
+      lines: ["Mon - Thu: 8:00 AM - 5:00 PM", "Fri: 8:00 AM - 12:00 PM"],
+      icon: "clock",
+    },
+    {
+      key: "emergency",
+      title: "Emergency Contact",
+      lines: ["24/7 Emergency: 911", "Ambulance: 911"],
+      icon: "phone",
+    },
+    {
+      key: "appointment",
+      title: "Book Appointment",
+      lines: ["Call: 252-522-3663", "Fax: 252-522-3660"],
+      icon: "calendar",
+    },
+  ];
+
+  const renderConsultationIcon = (icon) => {
+    const stroke = "#bfdbfe";
+    switch (icon) {
+      case "clock":
+        return (
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={stroke}
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true">
+            <circle cx="12" cy="12" r="9"></circle>
+            <polyline points="12 7 12 12 15 14"></polyline>
+          </svg>
+        );
+      case "phone":
+        return (
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={stroke}
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07A19.5 19.5 0 0 1 3.15 9.8 19.8 19.8 0 0 1 .08 1.18 2 2 0 0 1 2.05-.99h3a2 2 0 0 1 2 1.72c.12.92.37 1.82.73 2.67a2 2 0 0 1-.45 2.11L6.1 6.89a16 16 0 0 0 7 7l1.37-1.22a2 2 0 0 1 2.11-.45c.85.36 1.75.61 2.67.73A2 2 0 0 1 22 16.92Z" />
+          </svg>
+        );
+      case "calendar":
+        return (
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={stroke}
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <path d="M16 2v4" />
+            <path d="M8 2v4" />
+            <path d="M3 10h18" />
+            <path d="M8 14h.01" />
+            <path d="M12 14h.01" />
+            <path d="M16 14h.01" />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+
   // Services (drives the dynamic Services section)
   const services = [
     {
@@ -150,117 +231,49 @@ const Home = () => {
       </section>
 
       {/* CONSULTATION TIMING BANNER */}
-      <section
-        className="consultation-banner section"
-        style={{
-          background: "linear-gradient(135deg, #004aad 0%, #003784 100%)",
-          color: "#fff",
-          padding: "40px 0",
-          marginTop: "-50px",
-          position: "relative",
-          zIndex: 3,
-          borderRadius: "0 0 30px 30px",
-        }}>
-        <div className="container">
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "30px",
-            }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+      <section className="relative overflow-hidden py-12 md:py-14 bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white -mt-12 rounded-b-[28px]">
+        <div className="pointer-events-none absolute inset-0">
+          <span className="absolute -left-16 top-6 h-60 w-60 rounded-full bg-blue-500/25 blur-3xl" aria-hidden="true"></span>
+          <span className="absolute right-0 bottom-0 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl" aria-hidden="true"></span>
+          <span className="absolute inset-4 rounded-3xl border border-white/10 opacity-40" aria-hidden="true"></span>
+          <span className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" aria-hidden="true"></span>
+        </div>
+        <div className="container relative z-10">
+          <div className="flex flex-col items-center gap-3 text-center mb-8">
+            <p className="text-white/80 text-sm md:text-base tracking-wide uppercase">Here when you need us</p>
+            <div className="h-1.5 w-16 rounded-full bg-white/60 blur-[1px] shadow-[0_0_20px_rgba(255,255,255,0.35)]"></div>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {consultationItems.map((item) => (
               <div
-                style={{
-                  width: "60px",
-                  height: "60px",
-                  background: "rgba(255,255,255,0.15)",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "24px",
-                }}>
-                🕐
+                key={item.key}
+                className="flex items-center gap-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur px-4 py-5 shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(0,0,0,0.32)] hover:border-white/20">
+                <div className="relative flex items-center justify-center h-14 w-14 rounded-full bg-white/10 border border-white/15 shadow-[0_8px_18px_rgba(0,0,0,0.18)]">
+                  <span className="absolute inset-0 rounded-full bg-white/10 blur-lg"></span>
+                  {renderConsultationIcon(item.icon)}
+                </div>
+                <div>
+                  <h5 className="m-0 mb-1 text-sm font-semibold tracking-wide uppercase text-white">
+                    {item.title}
+                  </h5>
+                  <p className="m-0 text-sm text-white/90 leading-6">
+                    {item.lines.map((line, idx) => (
+                      <span key={idx} className="block">
+                        {line}
+                      </span>
+                    ))}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h5
-                  style={{
-                    margin: 0,
-                    marginBottom: "5px",
-                    fontWeight: "700",
-                    textTransform: "uppercase",
-                  }}>
-                  Consultation Hours
-                </h5>
-                <p style={{ margin: 0, fontSize: "16px" }}>
-                  Mon - Thu: 8:00 AM - 5:00 PM
-                  <br />
-                  Fri: 8:00 AM - 12:00 PM
-                </p>
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-              <div
-                style={{
-                  width: "60px",
-                  height: "60px",
-                  background: "rgba(255,255,255,0.15)",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "24px",
-                }}>
-                📞
-              </div>
-              <div>
-                <h5
-                  style={{
-                    margin: 0,
-                    marginBottom: "5px",
-                    fontWeight: "700",
-                    textTransform: "uppercase",
-                  }}>
-                  Emergency Contact
-                </h5>
-                <p style={{ margin: 0, fontSize: "16px" }}>
-                  24/7 Emergency: 911
-                  <br />
-                  Ambulance: 911
-                </p>
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-              <div
-                style={{
-                  width: "60px",
-                  height: "60px",
-                  background: "rgba(255,255,255,0.15)",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "24px",
-                }}>
-                📅
-              </div>
-              <div>
-                <h5
-                  style={{
-                    margin: 0,
-                    marginBottom: "5px",
-                    fontWeight: "700",
-                    textTransform: "uppercase",
-                  }}>
-                  Book Appointment
-                </h5>
-                <p style={{ margin: 0, fontSize: "16px" }}>
-                  Call: 252-522-3663
-                  <br />
-                  Fax: 252-522-3660
-                </p>
-              </div>
-            </div>
+            ))}
+          </div>
+          <div className="mt-8 flex justify-center">
+            <Link
+              to="/appointment"
+              className="inline-flex items-center gap-2 rounded-xl bg-white text-blue-900 font-semibold text-sm px-5 py-3 shadow-[0_12px_30px_rgba(0,0,0,0.18)] hover:-translate-y-0.5 hover:shadow-[0_16px_38px_rgba(0,0,0,0.22)] transition">
+              <i className="fas fa-calendar-check text-blue-700"></i>
+              Book an appointment
+            </Link>
           </div>
         </div>
       </section>
