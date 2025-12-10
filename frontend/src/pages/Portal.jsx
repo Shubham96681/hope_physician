@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
   FaUser,
@@ -14,9 +14,12 @@ import "../styles/Home.css";
 import "../styles/Portal.css";
 import Input from "../components/shared/Input";
 import Button from "../components/shared/Button";
+import Modal from "../components/shared/Modal";
+import toast from "react-hot-toast";
 
 const Portal = () => {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+  const navigate = useNavigate();
   const [loginMethod, setLoginMethod] = useState("credentials");
   const [selectedRole, setSelectedRole] = useState(null);
   const [activeSection, setActiveSection] = useState("login");
@@ -28,6 +31,8 @@ const Portal = () => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
 
   useEffect(() => {
     document.title = "Patient Portal — Hope Physicians";
@@ -92,13 +97,86 @@ const Portal = () => {
     }
   };
 
+  // Handle action click
+  const handleActionClick = (actionId) => {
+    setActiveSection(actionId);
+    
+    // If user is logged in, navigate directly to the relevant page
+    if (user) {
+      switch (actionId) {
+        case "login":
+          // If already logged in, redirect to dashboard based on role
+          if (user.role === 'patient') {
+            navigate('/patient');
+          } else if (user.role === 'doctor') {
+            navigate('/doctor');
+          } else if (user.role === 'admin') {
+            navigate('/admin');
+          } else if (user.role === 'staff') {
+            navigate('/staff');
+          }
+          break;
+        case "appointment":
+          if (user.role === 'patient') {
+            navigate('/patient/appointments/book');
+          } else {
+            navigate('/appointment');
+          }
+          break;
+        case "televisit":
+          // Navigate to televisit page or show message
+          if (user.role === 'patient') {
+            navigate('/patient/appointments');
+          } else {
+            toast.error('Televisit feature coming soon!');
+          }
+          break;
+        case "paybill":
+          if (user.role === 'patient') {
+            navigate('/patient/billing');
+          } else {
+            toast.error('Billing access is only available for patients.');
+          }
+          break;
+        default:
+          break;
+      }
+    } else {
+      // If not logged in, show login form for login action
+      if (actionId === "login") {
+        // Already handled by activeSection state
+        return;
+      } else {
+        // For other actions, show custom login prompt modal
+        setPendingAction(actionId);
+        setShowLoginPrompt(true);
+      }
+    }
+  };
+
+  // Handle login prompt confirmation
+  const handleLoginPromptConfirm = () => {
+    setShowLoginPrompt(false);
+    setActiveSection("login");
+    setPendingAction(null);
+  };
+
+  // Handle login prompt cancel
+  const handleLoginPromptCancel = () => {
+    setShowLoginPrompt(false);
+    setPendingAction(null);
+  };
+
   const portalActions = [
     {
       id: "login",
       icon: "📋",
-      title: "Login To Patient Portal",
-      description: "Access your health record",
+      title: user ? "Go to Dashboard" : "Login To Patient Portal",
+      description: user ? `Access your ${user.role} dashboard` : "Access your health record",
       color: "#4A90E2",
+      path: user 
+        ? (user.role === 'patient' ? '/patient' : user.role === 'doctor' ? '/doctor' : user.role === 'admin' ? '/admin' : '/staff')
+        : null,
     },
     {
       id: "appointment",
@@ -106,6 +184,7 @@ const Portal = () => {
       title: "Book an appointment",
       description: "Connect with a doctor in minutes",
       color: "#9B59B6",
+      path: user && user.role === 'patient' ? '/patient/appointments/book' : '/appointment',
     },
     {
       id: "televisit",
@@ -113,6 +192,7 @@ const Portal = () => {
       title: "Join a Televisit",
       description: "Join a booked consultation",
       color: "#E91E63",
+      path: user && user.role === 'patient' ? '/patient/appointments' : null,
     },
     {
       id: "paybill",
@@ -120,6 +200,7 @@ const Portal = () => {
       title: "Pay your bill",
       description: "View and settle your statements",
       color: "#E74C3C",
+      path: user && user.role === 'patient' ? '/patient/billing' : null,
     },
   ];
 
@@ -146,44 +227,50 @@ const Portal = () => {
         <div className="portal-main-card">
           {/* Left Panel - Navigation Actions */}
           <div className="portal-actions-panel">
-            {portalActions.map((action) => (
-              <div
-                key={action.id}
-                className={`portal-action-item ${
-                  activeSection === action.id ? "active" : ""
-                }`}
-                onClick={() => setActiveSection(action.id)}
-                style={{
-                  backgroundColor:
-                    activeSection === action.id ? "#E8F4FD" : "transparent",
-                  borderColor:
-                    activeSection === action.id ? "#4A90E2" : "transparent",
-                }}>
-                <div className="action-icon">
-                  <span style={{ fontSize: "24px" }}>{action.icon}</span>
+            {portalActions.map((action) => {
+              const isActive = activeSection === action.id;
+              const canNavigate = user && action.path;
+              
+              return (
+                <div
+                  key={action.id}
+                  className={`portal-action-item ${
+                    isActive ? "active" : ""
+                  } ${canNavigate ? "cursor-pointer" : ""}`}
+                  onClick={() => handleActionClick(action.id)}
+                  style={{
+                    backgroundColor:
+                      isActive ? "#E8F4FD" : "transparent",
+                    borderColor:
+                      isActive ? "#4A90E2" : "transparent",
+                    cursor: canNavigate ? "pointer" : "default",
+                  }}>
+                  <div className="action-icon">
+                    <span style={{ fontSize: "24px" }}>{action.icon}</span>
+                  </div>
+                  <div className="action-content">
+                    <h3
+                      className="action-title"
+                      style={{
+                        color: isActive ? "#004aad" : "#333",
+                      }}>
+                      {action.title}
+                    </h3>
+                    <p className="action-description">{action.description}</p>
+                  </div>
+                  <div className="action-arrow">
+                    <span
+                      style={{
+                        color: isActive ? "#004aad" : "#666",
+                        fontSize: "18px",
+                        fontWeight: "bold",
+                      }}>
+                      →
+                    </span>
+                  </div>
                 </div>
-                <div className="action-content">
-                  <h3
-                    className="action-title"
-                    style={{
-                      color: activeSection === action.id ? "#004aad" : "#333",
-                    }}>
-                    {action.title}
-                  </h3>
-                  <p className="action-description">{action.description}</p>
-                </div>
-                <div className="action-arrow">
-                  <span
-                    style={{
-                      color: activeSection === action.id ? "#004aad" : "#666",
-                      fontSize: "18px",
-                      fontWeight: "bold",
-                    }}>
-                    →
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Right Panel - Login Form */}
@@ -475,9 +562,9 @@ const Portal = () => {
                     className="trouble-login-link"
                     onClick={(e) => {
                       e.preventDefault();
-                      alert(
-                        "Please contact support at 252-522-3663 for login assistance."
-                      );
+                      toast.info("Please contact support at 252-522-3663 for login assistance.", {
+                        duration: 5000,
+                      });
                     }}>
                     Trouble logging in?
                   </a>
@@ -487,6 +574,41 @@ const Portal = () => {
           </div>
         </div>
       </div>
+
+      {/* Login Prompt Modal */}
+      <Modal
+        isOpen={showLoginPrompt}
+        onClose={handleLoginPromptCancel}
+        title="Login Required"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <FaEnvelope className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-gray-700">
+                Please login first to access this feature. Would you like to login now?
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-3 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={handleLoginPromptCancel}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleLoginPromptConfirm}
+            >
+              Login Now
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
