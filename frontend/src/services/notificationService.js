@@ -8,24 +8,31 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 /**
  * Get notifications for a doctor
+ * If doctorId is provided, uses that; otherwise uses logged-in doctor from token
  */
 export const getDoctorNotifications = async (doctorId, filters = {}) => {
   try {
     const token = localStorage.getItem('token');
     const params = new URLSearchParams(filters);
     
-    const response = await axios.get(
-      `${API_BASE}/notifications/doctor${doctorId ? `/${doctorId}` : ''}?${params}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        timeout: 5000,
-      }
-    );
+    // Use /doctor endpoint (without ID) to get notifications for logged-in doctor
+    // The backend will extract doctorId from the JWT token
+    const endpoint = doctorId 
+      ? `${API_BASE}/notifications/doctor/${doctorId}?${params}`
+      : `${API_BASE}/notifications/doctor?${params}`;
+    
+    const response = await axios.get(endpoint, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      timeout: 5000,
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching doctor notifications:', error);
+    if (error.response) {
+      console.error('Response error:', error.response.data);
+    }
     throw error;
   }
 };

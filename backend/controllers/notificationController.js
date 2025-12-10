@@ -36,32 +36,19 @@ const notificationController = {
         where.type = type;
       }
 
-      // Search in title and message
+      // Search in title and message (SQLite compatible)
       if (search) {
         where.OR = [
-          { title: { contains: search, mode: 'insensitive' } },
-          { message: { contains: search, mode: 'insensitive' } }
+          { title: { contains: search } },
+          { message: { contains: search } }
         ];
       }
 
+      // Fetch notifications with related data
+      // Note: appointment relation is not defined in schema, so we fetch it separately if needed
       const notifications = await prisma.notification.findMany({
         where,
         include: {
-          appointment: {
-            select: {
-              id: true,
-              date: true,
-              time: true,
-              patient: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  email: true
-                }
-              }
-            }
-          },
           event: {
             select: {
               id: true,
@@ -82,17 +69,50 @@ const notificationController = {
         orderBy: { createdAt: 'desc' }
       });
 
+      // Fetch appointment data separately for notifications that have appointmentId
+      const notificationsWithAppointments = await Promise.all(
+        notifications.map(async (notif) => {
+          if (notif.appointmentId) {
+            try {
+              const appointment = await prisma.appointment.findUnique({
+                where: { id: notif.appointmentId },
+                select: {
+                  id: true,
+                  date: true,
+                  time: true,
+                  patient: {
+                    select: {
+                      id: true,
+                      firstName: true,
+                      lastName: true,
+                      email: true
+                    }
+                  }
+                }
+              });
+              return { ...notif, appointment };
+            } catch (error) {
+              console.error(`Error fetching appointment ${notif.appointmentId}:`, error);
+              return notif;
+            }
+          }
+          return notif;
+        })
+      );
+
       return res.json({
         success: true,
-        data: notifications,
-        total: notifications.length
+        data: notificationsWithAppointments,
+        total: notificationsWithAppointments.length
       });
     } catch (error) {
       console.error('❌ Error fetching doctor notifications:', error);
+      console.error('Error stack:', error.stack);
       return res.status(500).json({
         success: false,
         error: 'Failed to fetch notifications',
-        message: error.message
+        message: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   },
