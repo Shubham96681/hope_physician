@@ -1,0 +1,49 @@
+{
+  "apps": [
+    {
+      "name": "hope-physicians",
+      "displayName": "Hope Physicians",
+      "repo": "https://github.com/Shubham96681/hope_physician.git",
+      "directory": "/home/ubuntu/hope-physicians",
+      "backend": {
+        "directory": "backend",
+        "port": 5000,
+        "script": "server.js",
+        "envFile": ".env"
+      },
+      "frontend": {
+        "directory": "frontend",
+        "buildCommand": "npm run build",
+        "distDirectory": "dist"
+      },
+      "nginx": {
+        "serverName": "_",
+        "frontendPath": "/",
+        "apiPath": "/api"
+      }
+    },
+    {
+      "name": "app2",
+      "displayName": "Application 2",
+      "repo": "YOUR_SECOND_APP_REPO_URL",
+      "directory": "/home/ubuntu/app2",
+      "backend": {
+        "directory": "backend",
+        "port": 5001,
+        "script": "server.js",
+        "envFile": ".env"
+      },
+      "frontend": {
+        "directory": "frontend",
+        "buildCommand": "npm run build",
+        "distDirectory": "dist"
+      },
+      "nginx": {
+        "serverName": "_",
+        "frontendPath": "/app2",
+        "apiPath": "/app2/api"
+      }
+    }
+  ]
+}
+
