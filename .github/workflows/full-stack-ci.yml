@@ -25,11 +25,24 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: ''
+        
+    - name: Cache backend dependencies
+      uses: actions/cache@v3
+      id: cache-backend
+      with:
+        path: backend/node_modules
+        key: backend-${{ hashFiles('backend/package-lock.json') }}
         
     - name: Install backend dependencies
       working-directory: ./backend
-      run: npm ci
+      run: |
+        if [ -f package-lock.json ]; then
+          npm ci
+        elif [ -f yarn.lock ]; then
+          yarn install --frozen-lockfile
+        else
+          npm install
+        fi
       
     - name: Generate Prisma Client
       working-directory: ./backend
@@ -58,11 +71,24 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: ''
+      
+    - name: Cache frontend dependencies
+      uses: actions/cache@v3
+      id: cache-frontend
+      with:
+        path: frontend/node_modules
+        key: frontend-${{ hashFiles('frontend/package-lock.json') }}
       
     - name: Install frontend dependencies
       working-directory: ./frontend
-      run: npm ci
+      run: |
+        if [ -f package-lock.json ]; then
+          npm ci
+        elif [ -f yarn.lock ]; then
+          yarn install --frozen-lockfile
+        else
+          npm install
+        fi
       
     - name: Run linter
       working-directory: ./frontend
@@ -121,17 +147,11 @@ jobs:
         ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "mkdir -p ~/hope-physicians/backend"
         ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "mkdir -p ~/hope-physicians/frontend/dist"
         
-        # Copy entire backend directory
-        scp -r backend/* $EC2_USER@$EC2_HOST:~/hope-physicians/backend/ || {
-          echo "Copying backend files..."
-          rsync -avz --exclude 'node_modules' backend/ $EC2_USER@$EC2_HOST:~/hope-physicians/backend/
-        }
+        # Copy entire backend directory (excluding node_modules)
+        rsync -avz --exclude node_modules --exclude '.git*' artifacts/backend-build/ $EC2_USER@$EC2_HOST:~/hope-physicians/backend/
         
         # Copy frontend build
-        scp -r artifacts/frontend-build/* $EC2_USER@$EC2_HOST:~/hope-physicians/frontend/dist/ || {
-          echo "Copying frontend files..."
-          rsync -avz artifacts/frontend-build/ $EC2_USER@$EC2_HOST:~/hope-physicians/frontend/dist/
-        }
+        rsync -avz artifacts/frontend-build/ $EC2_USER@$EC2_HOST:~/hope-physicians/frontend/dist/
         
         # Copy deployment scripts
         scp deploy.sh $EC2_USER@$EC2_HOST:~/hope-physicians/ || true
