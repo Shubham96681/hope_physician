@@ -26,23 +26,9 @@ jobs:
       with:
         node-version: '18'
         
-    - name: Cache backend dependencies
-      uses: actions/cache@v3
-      id: cache-backend
-      with:
-        path: backend/node_modules
-        key: backend-${{ hashFiles('backend/package-lock.json') }}
-        
     - name: Install backend dependencies
       working-directory: ./backend
-      run: |
-        if [ -f package-lock.json ]; then
-          npm ci
-        elif [ -f yarn.lock ]; then
-          yarn install --frozen-lockfile
-        else
-          npm install
-        fi
+      run: npm ci
       
     - name: Generate Prisma Client
       working-directory: ./backend
@@ -72,23 +58,9 @@ jobs:
       with:
         node-version: '18'
       
-    - name: Cache frontend dependencies
-      uses: actions/cache@v3
-      id: cache-frontend
-      with:
-        path: frontend/node_modules
-        key: frontend-${{ hashFiles('frontend/package-lock.json') }}
-      
     - name: Install frontend dependencies
       working-directory: ./frontend
-      run: |
-        if [ -f package-lock.json ]; then
-          npm ci
-        elif [ -f yarn.lock ]; then
-          yarn install --frozen-lockfile
-        else
-          npm install
-        fi
+      run: npm ci
       
     - name: Run linter
       working-directory: ./frontend
