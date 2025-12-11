@@ -25,8 +25,26 @@ echo -e "${YELLOW}📁 Application Directory: $APP_DIR${NC}"
 # Install Node.js if not present
 if ! command -v node &> /dev/null; then
     echo -e "${YELLOW}📦 Installing Node.js 18...${NC}"
-    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-    sudo apt-get install -y nodejs
+    # Detect OS and install accordingly
+    if [ -f /etc/debian_version ]; then
+        # Debian/Ubuntu
+        curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+    elif [ -f /etc/redhat-release ]; then
+        # RHEL/CentOS/Amazon Linux
+        curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+        sudo yum install -y nodejs
+    else
+        # Try using nvm as fallback
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" || {
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        }
+        nvm install 18
+        nvm use 18
+    fi
     echo -e "${GREEN}✅ Node.js installed${NC}"
 fi
 
@@ -36,8 +54,11 @@ echo -e "${GREEN}✅ npm: $(npm --version)${NC}"
 # Install PM2 if not present
 if ! command -v pm2 &> /dev/null; then
     echo -e "${YELLOW}📦 Installing PM2...${NC}"
-    sudo npm install -g pm2
-    pm2 startup systemd -u $USER --hp /home/$USER 2>/dev/null | grep "sudo" | bash || true
+    npm install -g pm2 || sudo npm install -g pm2
+    # Setup PM2 startup only if systemd is available
+    if systemctl --version &>/dev/null; then
+        pm2 startup systemd -u $USER --hp /home/$USER 2>/dev/null | grep "sudo" | bash || true
+    fi
     echo -e "${GREEN}✅ PM2 installed${NC}"
 fi
 
@@ -145,11 +166,48 @@ server {
 }
 EOF
 
-    sudo ln -sf /etc/nginx/sites-available/hope-physicians /etc/nginx/sites-enabled/
-    sudo rm -f /etc/nginx/sites-enabled/default
+        sudo ln -sf /etc/nginx/sites-available/hope-physicians /etc/nginx/sites-enabled/
+        sudo rm -f /etc/nginx/sites-enabled/default
+    else
+        # RHEL/CentOS style - use conf.d
+        sudo tee /etc/nginx/conf.d/hope-physicians.conf > /dev/null << EOF
+server {
+    listen 80;
+    server_name _;
+    
+    root $FRONTEND_DIR/dist;
+    index index.html;
+    
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
+    
+    location /api {
+        proxy_pass http://localhost:$BACKEND_PORT;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_cache_bypass \$http_upgrade;
+    }
+    
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
+EOF
+    fi
     
     if sudo nginx -t 2>/dev/null; then
-        sudo systemctl reload nginx
+        if systemctl --version &>/dev/null; then
+            sudo systemctl reload nginx
+        else
+            sudo service nginx reload
+        fi
         echo -e "${GREEN}✅ Nginx configured${NC}"
     fi
 fi

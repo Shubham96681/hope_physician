@@ -2,46 +2,89 @@
 
 # EC2 Initial Setup Script
 # Run this once on a fresh EC2 instance
+# Supports both Debian/Ubuntu and RHEL/Amazon Linux
 
 set -e
 
 echo "🚀 Setting up EC2 instance for Hope Physicians..."
 
+# Detect OS
+if [ -f /etc/debian_version ]; then
+    OS_TYPE="debian"
+elif [ -f /etc/redhat-release ]; then
+    OS_TYPE="rhel"
+else
+    OS_TYPE="unknown"
+fi
+
+echo "Detected OS: $OS_TYPE"
+
 # Update system
 echo "📦 Updating system packages..."
-sudo apt-get update
-sudo apt-get upgrade -y
+if [ "$OS_TYPE" = "debian" ]; then
+    sudo apt-get update
+    sudo apt-get upgrade -y
+elif [ "$OS_TYPE" = "rhel" ]; then
+    sudo yum update -y
+fi
 
 # Install Node.js 18
 echo "📦 Installing Node.js 18..."
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
+if [ "$OS_TYPE" = "debian" ]; then
+    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+elif [ "$OS_TYPE" = "rhel" ]; then
+    curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+    sudo yum install -y nodejs
+fi
 
 # Install PM2
 echo "📦 Installing PM2..."
 sudo npm install -g pm2
-pm2 startup systemd -u $USER --hp /home/$USER 2>/dev/null | grep "sudo" | bash || true
+if systemctl --version &>/dev/null; then
+    pm2 startup systemd -u $USER --hp /home/$USER 2>/dev/null | grep "sudo" | bash || true
+fi
 
 # Install Nginx
 echo "📦 Installing Nginx..."
-sudo apt-get install -y nginx
+if [ "$OS_TYPE" = "debian" ]; then
+    sudo apt-get install -y nginx
+elif [ "$OS_TYPE" = "rhel" ]; then
+    sudo yum install -y nginx
+fi
 
 # Install Git
 if ! command -v git &> /dev/null; then
     echo "📦 Installing Git..."
-    sudo apt-get install -y git
+    if [ "$OS_TYPE" = "debian" ]; then
+        sudo apt-get install -y git
+    elif [ "$OS_TYPE" = "rhel" ]; then
+        sudo yum install -y git
+    fi
 fi
 
 # Install build tools
 echo "📦 Installing build tools..."
-sudo apt-get install -y build-essential python3
+if [ "$OS_TYPE" = "debian" ]; then
+    sudo apt-get install -y build-essential python3
+elif [ "$OS_TYPE" = "rhel" ]; then
+    sudo yum groupinstall -y "Development Tools"
+    sudo yum install -y python3
+fi
 
 # Setup firewall
 echo "🔥 Configuring firewall..."
-sudo ufw allow 22/tcp
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw --force enable
+if command -v ufw &> /dev/null; then
+    sudo ufw allow 22/tcp
+    sudo ufw allow 80/tcp
+    sudo ufw allow 443/tcp
+    sudo ufw --force enable
+elif command -v firewall-cmd &> /dev/null; then
+    sudo firewall-cmd --permanent --add-service=ssh
+    sudo firewall-cmd --permanent --add-service=http
+    sudo firewall-cmd --permanent --add-service=https
+    sudo firewall-cmd --reload
+fi
 
 # Create application directory
 mkdir -p ~/hope-physicians/logs
