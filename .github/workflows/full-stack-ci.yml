@@ -134,10 +134,16 @@ jobs:
         ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "mkdir -p ~/hope-physicians/frontend/dist"
         
         # Copy entire backend directory (excluding node_modules)
-        rsync -avz --exclude node_modules --exclude '.git*' artifacts/backend-build/ $EC2_USER@$EC2_HOST:~/hope-physicians/backend/
+        rsync -avz --exclude node_modules --exclude '.git*' artifacts/backend-build/ $EC2_USER@$EC2_HOST:~/hope-physicians/backend/ || {
+          echo "Rsync failed, trying scp..."
+          scp -r artifacts/backend-build/* $EC2_USER@$EC2_HOST:~/hope-physicians/backend/
+        }
         
         # Copy frontend build
-        rsync -avz artifacts/frontend-build/ $EC2_USER@$EC2_HOST:~/hope-physicians/frontend/dist/
+        rsync -avz artifacts/frontend-build/ $EC2_USER@$EC2_HOST:~/hope-physicians/frontend/dist/ || {
+          echo "Rsync failed, trying scp..."
+          scp -r artifacts/frontend-build/* $EC2_USER@$EC2_HOST:~/hope-physicians/frontend/dist/
+        }
         
         # Copy deployment scripts
         scp deploy.sh $EC2_USER@$EC2_HOST:~/hope-physicians/ || true
