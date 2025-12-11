@@ -222,7 +222,10 @@ if command -v nginx &> /dev/null; then
         echo -e "${GREEN}✅ Frontend dist directory found with files${NC}"
     fi
     
-    # Ensure proper permissions
+    # Ensure proper permissions so nginx (www-data/nginx) can read files
+    chmod 755 /home/$USER 2>/dev/null || true
+    chmod 755 "$APP_DIR" 2>/dev/null || true
+    chmod 755 "$FRONTEND_DIR" 2>/dev/null || true
     chmod -R 755 "$FRONTEND_DIR/dist" 2>/dev/null || true
     
     NGINX_CONFIG="server {
@@ -269,6 +272,7 @@ if command -v nginx &> /dev/null; then
     # RHEL/CentOS/Amazon Linux style
     elif [ -d "/etc/nginx/conf.d" ]; then
         echo "$NGINX_CONFIG" | sudo tee /etc/nginx/conf.d/hope-physicians.conf > /dev/null
+        sudo rm -f /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/ssl.conf 2>/dev/null || true
     fi
     
     if sudo nginx -t 2>/dev/null; then
