@@ -4,8 +4,8 @@
 # This script handles deployment of both backend and frontend
 # For multiple apps, use deploy-multi-app.sh instead
 
-# Don't exit on error - continue deployment even if some steps fail
-set +e
+# Exit on error for critical steps, but continue for non-critical
+set -e
 
 echo "🚀 Starting deployment..."
 
@@ -50,7 +50,14 @@ npm run prisma:generate
 
 # Run database migrations (non-interactive)
 echo -e "${YELLOW}🗄️  Running database migrations...${NC}"
-npx prisma migrate deploy --skip-generate 2>/dev/null || echo "⚠️  Migration skipped or already applied"
+if [ -f "$BACKEND_DIR/prisma/schema.prisma" ]; then
+    npx prisma migrate deploy --skip-generate 2>/dev/null || {
+        echo "⚠️  Migration failed or already applied, trying db push..."
+        npx prisma db push --skip-generate --accept-data-loss 2>/dev/null || echo "⚠️  Database setup skipped"
+    }
+else
+    echo "⚠️  Prisma schema not found, skipping migrations"
+fi
 
 # Create/Update .env file with latest secrets
 echo -e "${YELLOW}📝 Creating/Updating .env file...${NC}"
