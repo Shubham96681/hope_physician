@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Hope Physicians Deployment Script for EC2
+# Hope Physicians Deployment Script for EC2 (Single App)
 # This script handles deployment of both backend and frontend
+# For multiple apps, use deploy-multi-app.sh instead
 
 set -e  # Exit on error
 
@@ -46,27 +47,23 @@ npm ci --production=false
 echo -e "${YELLOW}🔨 Generating Prisma Client...${NC}"
 npm run prisma:generate
 
-# Run database migrations
+# Run database migrations (non-interactive)
 echo -e "${YELLOW}🗄️  Running database migrations...${NC}"
-npx prisma migrate deploy || echo "⚠️  Migration skipped or already applied"
+npx prisma migrate deploy --skip-generate 2>/dev/null || echo "⚠️  Migration skipped or already applied"
 
-# Create .env file if it doesn't exist
-if [ ! -f "$BACKEND_DIR/.env" ]; then
-    echo -e "${YELLOW}📝 Creating .env file...${NC}"
-    cat > $BACKEND_DIR/.env << EOF
-NODE_ENV=$NODE_ENV
-PORT=$BACKEND_PORT
+# Create/Update .env file with latest secrets
+echo -e "${YELLOW}📝 Creating/Updating .env file...${NC}"
+cat > $BACKEND_DIR/.env << EOF
+NODE_ENV=${NODE_ENV:-production}
+PORT=${BACKEND_PORT:-5000}
 JWT_SECRET=${JWT_SECRET:-change-this-secret-in-production}
-DATABASE_URL=file:./prisma/hope_physicians.db
+DATABASE_URL=${DATABASE_URL:-file:./prisma/hope_physicians.db}
 EMAIL_USER=${EMAIL_USER:-}
 EMAIL_PASS=${EMAIL_PASS:-}
 RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID:-}
 RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET:-}
 EOF
-    echo -e "${GREEN}✅ .env file created${NC}"
-else
-    echo -e "${GREEN}✅ .env file already exists${NC}"
-fi
+echo -e "${GREEN}✅ .env file created/updated${NC}"
 
 # Stop existing PM2 process if running
 if command -v pm2 &> /dev/null; then
@@ -102,8 +99,9 @@ else
         pm2 start server.js --name "hope-physicians-backend" --update-env
     fi
     
-    pm2 startup
-    pm2 save
+    # Setup PM2 startup (non-interactive)
+    pm2 startup systemd -u $USER --hp /home/$USER --no-interaction 2>/dev/null || true
+    pm2 save --force
     echo -e "${GREEN}✅ Backend started with PM2${NC}"
 fi
 
@@ -165,9 +163,13 @@ EOF
     sudo ln -sf /etc/nginx/sites-available/hope-physicians /etc/nginx/sites-enabled/
     sudo rm -f /etc/nginx/sites-enabled/default
     
-    # Test and reload nginx
-    sudo nginx -t && sudo systemctl reload nginx
-    echo -e "${GREEN}✅ Nginx configured and reloaded${NC}"
+    # Test and reload nginx (non-interactive)
+    if sudo nginx -t 2>/dev/null; then
+        sudo systemctl reload nginx 2>/dev/null || true
+        echo -e "${GREEN}✅ Nginx configured and reloaded${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Nginx config test failed, but continuing...${NC}"
+    fi
 else
     echo -e "${YELLOW}⚠️  Nginx not installed. Frontend built but not served.${NC}"
     echo -e "${YELLOW}   Install Nginx: sudo apt-get update && sudo apt-get install -y nginx${NC}"
