@@ -35,13 +35,14 @@ jobs:
       working-directory: ./backend
       run: npm run prisma:generate
       env:
-        DATABASE_URL: "file:./dev.db"
+        DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:./dev.db' }}
+        NODE_ENV: ${{ secrets.NODE_ENV || 'test' }}
         
     - name: Run Prisma Migrate
       working-directory: ./backend
       run: npx prisma migrate deploy
       env:
-        DATABASE_URL: "file:./dev.db"
+        DATABASE_URL: ${{ secrets.DATABASE_URL || 'file:./dev.db' }}
       continue-on-error: true
         
     - name: Build check
