@@ -52,11 +52,38 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts || true
     
+    - name: Test SSH Connection
+      timeout-minutes: 2
+      run: |
+        echo "🔍 Testing SSH connection to ${{ secrets.EC2_HOST }}..."
+        MAX_RETRIES=3
+        RETRY_COUNT=0
+        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+          echo "Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES..."
+          if timeout 15 ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o BatchMode=yes ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'SSH OK'" 2>&1; then
+            echo "✅ SSH connection successful"
+            exit 0
+          else
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "⏳ Retrying in 3 seconds..."
+              sleep 3
+            fi
+          fi
+        done
+        echo "❌ SSH connection failed after $MAX_RETRIES attempts"
+        echo "⚠️  EC2 instance is not reachable. Please check:"
+        echo "   1. EC2 instance is running (not stopped/terminated)"
+        echo "   2. Security group allows SSH (port 22) from 0.0.0.0/0 or GitHub Actions IPs"
+        echo "   3. EC2_HOST secret is correct: ${{ secrets.EC2_HOST }}"
+        echo "   4. Instance public IP hasn't changed"
+        exit 1
+    
     - name: Deploy to EC2 via rsync
       timeout-minutes: 10
       run: |
         echo "📦 Deploying to EC2 (excluding node_modules and .git)..."
-        rsync -avz --progress \
+        timeout 300 rsync -avz --progress \
           --exclude 'node_modules' \
           --exclude '.git' \
           --exclude 'frontend/dist' \
@@ -65,11 +92,11 @@ jobs:
           --exclude '.github' \
           --exclude '*.log' \
           --exclude '*.md' \
-          -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30" \
+          -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=15" \
           ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/hope-physicians/ || {
-          echo "Rsync failed, trying scp for essential files only..."
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "mkdir -p /home/${{ secrets.EC2_USER }}/hope-physicians"
-          scp -o StrictHostKeyChecking=no deploy.sh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/hope-physicians/ || exit 1
+          echo "❌ Rsync failed"
+          echo "⚠️  This usually means the EC2 instance is not accessible"
+          exit 1
         }
         echo "✅ Files deployed"
         
