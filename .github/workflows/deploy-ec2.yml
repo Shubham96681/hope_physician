@@ -44,98 +44,78 @@ jobs:
         NODE_ENV: production
       run: npm run build
       
-    # Deploy to EC2
-    - name: Deploy to EC2 via SCP
-      uses: appleboy/scp-action@v0.1.7
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        port: ${{ secrets.EC2_PORT || 22 }}
-        source: "."
-        target: "/home/${{ secrets.EC2_USER }}/hope-physicians"
-        strip_components: 0
-        rm: false
-        timeout: 300s
+    # Deploy to EC2 using rsync (faster and excludes node_modules)
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts || true
+    
+    - name: Test SSH Connection
+      timeout-minutes: 2
+      run: |
+        echo "🔍 Testing SSH connection to ${{ secrets.EC2_HOST }}..."
+        MAX_RETRIES=3
+        RETRY_COUNT=0
+        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+          echo "Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES..."
+          if timeout 15 ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o BatchMode=yes ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "echo 'SSH OK'" 2>&1; then
+            echo "✅ SSH connection successful"
+            exit 0
+          else
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "⏳ Retrying in 3 seconds..."
+              sleep 3
+            fi
+          fi
+        done
+        echo "❌ SSH connection failed after $MAX_RETRIES attempts"
+        echo "⚠️  EC2 instance is not reachable. Please check:"
+        echo "   1. EC2 instance is running (not stopped/terminated)"
+        echo "   2. Security group allows SSH (port 22) from 0.0.0.0/0 or GitHub Actions IPs"
+        echo "   3. EC2_HOST secret is correct: ${{ secrets.EC2_HOST }}"
+        echo "   4. Instance public IP hasn't changed"
+        exit 1
+    
+    - name: Deploy to EC2 via rsync
+      timeout-minutes: 10
+      run: |
+        echo "📦 Deploying to EC2 (excluding node_modules and .git)..."
+        timeout 300 rsync -avz --progress \
+          --exclude 'node_modules' \
+          --exclude '.git' \
+          --exclude 'frontend/dist' \
+          --exclude 'backend/node_modules' \
+          --exclude 'frontend/node_modules' \
+          --exclude '.github' \
+          --exclude '*.log' \
+          --exclude '*.md' \
+          -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=15" \
+          ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/hope-physicians/ || {
+          echo "❌ Rsync failed"
+          echo "⚠️  This usually means the EC2 instance is not accessible"
+          exit 1
+        }
+        echo "✅ Files deployed"
         
     - name: Execute deployment script on EC2
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        port: ${{ secrets.EC2_PORT || 22 }}
-        timeout: 900s
-        envs: JWT_SECRET,EMAIL_USER,EMAIL_PASS,RAZORPAY_KEY_ID,RAZORPAY_KEY_SECRET,DATABASE_URL,PORT,NODE_ENV,VITE_API_URL
-        script: |
-          set -e
-          echo "🚀 Starting deployment on EC2..."
-          echo "Current directory: $(pwd)"
-          echo "User: $(whoami)"
-          
-          # Navigate to application directory
-          cd /home/${{ secrets.EC2_USER }}/hope-physicians || {
-            echo "❌ Application directory not found!"
-            echo "Creating directory..."
-            mkdir -p /home/${{ secrets.EC2_USER }}/hope-physicians
-            cd /home/${{ secrets.EC2_USER }}/hope-physicians
-          }
-          
-          echo "📁 Current directory: $(pwd)"
-          echo "📋 Files in directory:"
-          ls -la | head -10
-          
-          # Make deploy script executable
-          chmod +x deploy.sh || echo "⚠️  deploy.sh not found or cannot make executable"
-          
-          # Set environment variables
-          export JWT_SECRET="${{ secrets.JWT_SECRET }}"
-          export EMAIL_USER="${{ secrets.EMAIL_USER }}"
-          export EMAIL_PASS="${{ secrets.EMAIL_PASS }}"
-          export RAZORPAY_KEY_ID="${{ secrets.RAZORPAY_KEY_ID }}"
-          export RAZORPAY_KEY_SECRET="${{ secrets.RAZORPAY_KEY_SECRET }}"
-          export DATABASE_URL="${{ secrets.DATABASE_URL }}"
-          export PORT="${{ secrets.PORT || 5000 }}"
-          export NODE_ENV="${{ secrets.NODE_ENV || 'production' }}"
-          export VITE_API_URL="${{ secrets.VITE_API_URL }}"
-          
-          echo "✅ Environment variables set"
-          echo "Running deployment script..."
-          
-          # Run deployment script with error handling
-          if [ -f "./deploy.sh" ]; then
-            bash -x ./deploy.sh 2>&1 || {
-              echo "❌ Deployment script failed!"
-              echo "Checking what went wrong..."
-              pm2 status || echo "PM2 not available"
-              exit 1
-            }
-          else
-            echo "❌ deploy.sh not found in $(pwd)"
-            echo "Available files:"
-            ls -la
-            exit 1
-          fi
-          
-          echo "✅ Deployment script completed"
+      timeout-minutes: 30
+      env:
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        EMAIL_USER: ${{ secrets.EMAIL_USER }}
+        EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+        RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
+        RAZORPAY_KEY_SECRET: ${{ secrets.RAZORPAY_KEY_SECRET }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        PORT: ${{ secrets.PORT || '5000' }}
+        NODE_ENV: ${{ secrets.NODE_ENV || 'production' }}
+        VITE_API_URL: ${{ secrets.VITE_API_URL }}
+      run: |
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -o ServerAliveInterval=30 ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "cd /home/${{ secrets.EC2_USER }}/hope-physicians && chmod +x deploy.sh && export JWT_SECRET='$JWT_SECRET' && export EMAIL_USER='$EMAIL_USER' && export EMAIL_PASS='$EMAIL_PASS' && export RAZORPAY_KEY_ID='$RAZORPAY_KEY_ID' && export RAZORPAY_KEY_SECRET='$RAZORPAY_KEY_SECRET' && export DATABASE_URL='$DATABASE_URL' && export PORT='${PORT:-5000}' && export NODE_ENV='${NODE_ENV:-production}' && export VITE_API_URL='$VITE_API_URL' && timeout 1800 bash deploy.sh"
           
     - name: Verify deployment and run diagnostics
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        port: ${{ secrets.EC2_PORT || 22 }}
-        timeout: 60s
-        script: |
-          echo "🔍 Verifying deployment..."
-          cd /home/${{ secrets.EC2_USER }}/hope-physicians
-          chmod +x check-deployment.sh 2>/dev/null || true
-          ./check-deployment.sh 2>/dev/null || {
-            echo "Running basic checks..."
-            pm2 status || echo "PM2 not running"
-            sudo systemctl status nginx --no-pager -l || echo "Nginx status check"
-            echo "Checking ports..."
-            netstat -tuln 2>/dev/null | grep -E "(80|5000)" || ss -tuln 2>/dev/null | grep -E "(80|5000)" || echo "Cannot check ports"
-          }
-          echo "✅ Deployment verification completed"
+      timeout-minutes: 2
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "cd /home/${{ secrets.EC2_USER }}/hope-physicians && (chmod +x check-deployment.sh 2>/dev/null && ./check-deployment.sh || (echo 'Running basic checks...' && pm2 status && sudo systemctl status nginx --no-pager -l 2>/dev/null || true)) && echo '✅ Deployment verification completed'"
