@@ -145,6 +145,13 @@ deploy_app() {
         echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
         cd "$BACKEND_DIR"
         
+        # Clean up node_modules if it exists (fixes ENOTEMPTY errors)
+        if [ -d "node_modules" ]; then
+            echo -e "${YELLOW}🧹 [$APP_NAME] Cleaning existing node_modules...${NC}"
+            rm -rf node_modules package-lock.json 2>/dev/null || true
+            echo -e "${GREEN}✅ [$APP_NAME] Cleanup completed${NC}"
+        fi
+        
         # Install dependencies with timeout and progress
         echo -e "${YELLOW}📦 [$APP_NAME] Installing backend dependencies...${NC}"
         echo -e "${YELLOW}⏳ This may take 2-5 minutes, please wait...${NC}"
@@ -216,6 +223,13 @@ EOF
         
         # Check if dist already exists (from CI build)
         if [ ! -d "$FRONTEND_DIST" ] || [ ! "$(ls -A $FRONTEND_DIST 2>/dev/null)" ]; then
+            # Clean up node_modules if it exists (fixes ENOTEMPTY errors)
+            if [ -d "node_modules" ]; then
+                echo -e "${YELLOW}🧹 [$APP_NAME] Cleaning existing frontend node_modules...${NC}"
+                rm -rf node_modules package-lock.json 2>/dev/null || true
+                echo -e "${GREEN}✅ [$APP_NAME] Frontend cleanup completed${NC}"
+            fi
+            
             # Install dependencies with timeout and progress
             echo -e "${YELLOW}📦 [$APP_NAME] Installing frontend dependencies...${NC}"
             echo -e "${YELLOW}⏳ This may take 2-5 minutes, please wait...${NC}"
