@@ -3,8 +3,8 @@
  * Reusable table with sorting, pagination, and search
  */
 
-import { useState } from 'react';
-import StatusBadge from './StatusBadge';
+import { useState } from "react";
+import StatusBadge from "./StatusBadge";
 
 const DataTable = ({
   data = [],
@@ -13,18 +13,27 @@ const DataTable = ({
   searchable = true,
   pagination = true,
   pageSize = 10,
-  className = ''
+  className = "",
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
   // Filter data
   const filteredData = searchable
     ? data.filter((row) =>
         columns.some((col) => {
-          const value = col.accessor ? col.accessor(row) : row[col.key];
-          return value?.toString().toLowerCase().includes(searchTerm.toLowerCase());
+          const accessor = col.accessor;
+          const value =
+            typeof accessor === "function"
+              ? accessor(row)
+              : col.key
+              ? row[col.key]
+              : undefined;
+          return value
+            ?.toString()
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase());
         })
       )
     : data;
@@ -33,15 +42,22 @@ const DataTable = ({
   const sortedData = [...filteredData].sort((a, b) => {
     if (!sortConfig.key) return 0;
 
-    const aValue = columns.find((col) => col.key === sortConfig.key)?.accessor
-      ? columns.find((col) => col.key === sortConfig.key).accessor(a)
-      : a[sortConfig.key];
-    const bValue = columns.find((col) => col.key === sortConfig.key)?.accessor
-      ? columns.find((col) => col.key === sortConfig.key).accessor(b)
-      : b[sortConfig.key];
+    const targetCol = columns.find((col) => col.key === sortConfig.key);
+    const aValue =
+      typeof targetCol?.accessor === "function"
+        ? targetCol.accessor(a)
+        : sortConfig.key
+        ? a[sortConfig.key]
+        : undefined;
+    const bValue =
+      typeof targetCol?.accessor === "function"
+        ? targetCol.accessor(b)
+        : sortConfig.key
+        ? b[sortConfig.key]
+        : undefined;
 
-    if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-    if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+    if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+    if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
     return 0;
   });
 
@@ -54,7 +70,10 @@ const DataTable = ({
   const handleSort = (key) => {
     setSortConfig({
       key,
-      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+      direction:
+        sortConfig.key === key && sortConfig.direction === "asc"
+          ? "desc"
+          : "asc",
     });
   };
 
@@ -81,42 +100,64 @@ const DataTable = ({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              {columns.map((column) => (
-                <th
-                  key={column.key}
-                  onClick={() => column.sortable && handleSort(column.key)}
-                  className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                    column.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
-                  }`}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>{column.label}</span>
-                    {column.sortable && sortConfig.key === column.key && (
-                      <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                    )}
-                  </div>
-                </th>
-              ))}
+              {columns.map((column, colIndex) => {
+                const columnKey =
+                  column.key ??
+                  column.accessor?.name ??
+                  column.label ??
+                  `col-${colIndex}`;
+                return (
+                  <th
+                    key={columnKey}
+                    onClick={() => column.sortable && handleSort(column.key)}
+                    className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                      column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
+                    }`}>
+                    <div className="flex items-center space-x-1">
+                      <span>{column.label}</span>
+                      {column.sortable && sortConfig.key === column.key && (
+                        <span>
+                          {sortConfig.direction === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {paginatedData.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-6 py-4 text-center text-gray-500">
+                <td
+                  colSpan={columns.length}
+                  className="px-6 py-4 text-center text-gray-500">
                   No data available
                 </td>
               </tr>
             ) : (
               paginatedData.map((row, index) => (
                 <tr
-                  key={row.id || index}
+                  key={row.id ?? row._id ?? row.email ?? index}
                   onClick={() => onRowClick && onRowClick(row)}
-                  className={onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''}
-                >
-                  {columns.map((column) => {
-                    const value = column.accessor ? column.accessor(row) : row[column.key];
+                  className={
+                    onRowClick ? "cursor-pointer hover:bg-gray-50" : ""
+                  }>
+                  {columns.map((column, colIndex) => {
+                    const columnKey =
+                      column.key ??
+                      column.accessor?.name ??
+                      column.label ??
+                      `col-${colIndex}`;
+                    const value = column.accessor
+                      ? column.accessor(row)
+                      : column.key
+                      ? row[column.key]
+                      : undefined;
                     return (
-                      <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td
+                        key={columnKey}
+                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {column.render ? (
                           column.render(value, row)
                         ) : column.badge ? (
@@ -138,15 +179,15 @@ const DataTable = ({
       {pagination && totalPages > 1 && (
         <div className="px-6 py-4 border-t flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            Showing {(currentPage - 1) * pageSize + 1} to{' '}
-            {Math.min(currentPage * pageSize, sortedData.length)} of {sortedData.length} results
+            Showing {(currentPage - 1) * pageSize + 1} to{" "}
+            {Math.min(currentPage * pageSize, sortedData.length)} of{" "}
+            {sortedData.length} results
           </div>
           <div className="flex space-x-2">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
+              className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
               Previous
             </button>
             <span className="px-4 py-2">
@@ -155,8 +196,7 @@ const DataTable = ({
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
+              className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
               Next
             </button>
           </div>

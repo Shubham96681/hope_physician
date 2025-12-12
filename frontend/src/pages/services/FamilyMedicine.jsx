@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../../styles/Home.css";
 // High-quality image from Unsplash - Family Medicine (Doctor with family)
@@ -75,6 +75,26 @@ const FamilyMedicine = () => {
   const [hovered, setHovered] = useState(null);
   const [search, setSearch] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
+
+  useEffect(() => {
+    // Reveal on scroll animation
+    const reveals = document.querySelectorAll(".reveal-on-scroll");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+
+    reveals.forEach((r) => observer.observe(r));
+
+    return () => observer.disconnect();
+  }, []);
 
   const handleBook = (serviceLabel) => {
     navigate(`/appointment?service=${encodeURIComponent(serviceLabel)}`);
@@ -315,110 +335,127 @@ const FamilyMedicine = () => {
     s.label.toLowerCase().includes(search.trim().toLowerCase())
   );
   return (
-    <div className="page">
+    <>
       {/* HERO SECTION */}
       <section
-        className="hero-section"
-        style={{ backgroundImage: `url(${familyImg})` }}>
+        className="relative overflow-hidden py-16 md:py-24 reveal-on-scroll"
+        role="banner"
+        style={{
+          backgroundImage: `url(${familyImg})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          imageRendering: "high-quality",
+        }}>
         <div className="hero-overlay"></div>
-        <div className="hero-content container">
-          <h1>Family Medicine</h1>
-          <p className="subheading">
-            Comprehensive primary healthcare for individuals and families of all
-            ages
-          </p>
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-2 items-start min-h-[500px]">
+            {/* Left: Blue Overlay with Text */}
+            <div className="space-y-6">
+              <div className="bg-primary rounded-3xl p-10 shadow-2xl max-w-lg border border-white/10">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-5 reveal-on-scroll tracking-tight">
+                  Family Medicine
+                </h1>
+                <p className="text-white/90 text-lg md:text-xl mb-8 reveal-on-scroll leading-relaxed">
+                  Comprehensive primary healthcare for individuals and families
+                  of all ages. Our experienced family physicians serve as your
+                  primary healthcare partners, coordinating care and building
+                  long-term relationships with you and your family.
+                </p>
+                <Link
+                  to="/appointment"
+                  className="inline-flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105 reveal-on-scroll">
+                  <span>Book an Appointment</span>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 7l5 5m0 0l-5 5m5-5H6"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+
+            {/* Right: Welcome Text */}
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl max-w-lg">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-3 h-3 rounded-full bg-primary"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+              </div>
+              <h2
+                className="text-3xl md:text-4xl font-bold text-gray-900 mb-4"
+                style={{ fontFamily: "serif" }}>
+                Your Family's Health Partner
+              </h2>
+              <p className="text-gray-700 text-base leading-relaxed">
+                We focus on preventive care, health maintenance, and the
+                treatment of acute and chronic conditions for patients of all
+                ages.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* OVERVIEW */}
-      <section className="section" style={{ background: "#fff" }}>
-        <div className="container">
-          <div
-            className="about-wrapper"
-            style={{ gridTemplateColumns: "1fr", display: "block" }}>
-            <div
-              className="about-content"
-              style={{
-                maxWidth: "900px",
-                margin: "0 auto",
-                textAlign: "center",
-                padding: "40px 20px",
-              }}>
-              <h2
-                className="section-title"
-                style={{
-                  fontSize: "36px",
-                  color: "#004aad",
-                  marginBottom: "24px",
-                  fontWeight: "700",
-                  lineHeight: "1.2",
-                }}>
-                Comprehensive Family Healthcare
-              </h2>
-              <div
-                style={{
-                  textAlign: "left",
-                  maxWidth: "800px",
-                  margin: "0 auto",
-                }}>
-                <p
-                  className="about-intro"
-                  style={{
-                    color: "#2d3748",
-                    marginBottom: "20px",
-                    fontSize: "18px",
-                    lineHeight: "1.8",
-                    fontWeight: "400",
-                  }}>
-                  At Hope Physicians, our Family Medicine department provides
-                  comprehensive, patient-centered primary care for individuals
-                  and families across all stages of life. We focus on preventive
-                  care, health maintenance, and the treatment of acute and
-                  chronic conditions.
-                </p>
-                <p
-                  className="about-intro"
-                  style={{
-                    color: "#2d3748",
-                    marginBottom: "0",
-                    fontSize: "18px",
-                    lineHeight: "1.8",
-                    fontWeight: "400",
-                  }}>
-                  Our experienced family physicians serve as your primary
-                  healthcare partners, coordinating care and building long-term
-                  relationships with you and your family.
-                </p>
-              </div>
+      <section className="relative py-20 md:py-28 reveal-on-scroll bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-4">
+              <div className="w-2 h-2 rounded-full bg-primary"></div>
+              <p className="text-primary text-sm uppercase tracking-wider font-semibold">
+                Our Services
+              </p>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
+              Comprehensive Family Healthcare
+            </h2>
+            <div className="max-w-3xl mx-auto text-left space-y-6">
+              <p className="text-gray-700 text-lg leading-relaxed">
+                At Hope Physicians, our Family Medicine department provides
+                comprehensive, patient-centered primary care for individuals and
+                families across all stages of life. We focus on preventive care,
+                health maintenance, and the treatment of acute and chronic
+                conditions.
+              </p>
+              <p className="text-gray-700 text-lg leading-relaxed">
+                Our experienced family physicians serve as your primary
+                healthcare partners, coordinating care and building long-term
+                relationships with you and your family.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
       {/* SERVICES OFFERED */}
-      <section
-        className="py-5 bg-light section relative overflow-hidden"
-        style={{ background: "#f6f8fb", padding: "64px 0" }}>
+      <section className="relative py-20 md:py-28 reveal-on-scroll bg-gradient-to-b from-blue-50 to-white">
         <div className="pointer-events-none absolute inset-0">
           <span
-            className="absolute -top-24 left-1/5 h-72 w-72 rounded-full"
-            style={{
-              background: "rgba(59,130,246,0.15)",
-              filter: "blur(80px)",
-            }}
+            className="absolute -top-24 left-1/5 h-72 w-72 rounded-full bg-blue-400/15 blur-3xl"
             aria-hidden="true"></span>
           <span
-            className="absolute -bottom-24 right-1/5 h-80 w-80 rounded-full"
-            style={{
-              background: "rgba(99,102,241,0.12)",
-              filter: "blur(80px)",
-            }}
+            className="absolute -bottom-24 right-1/5 h-80 w-80 rounded-full bg-indigo-400/12 blur-3xl"
             aria-hidden="true"></span>
         </div>
-        <div className="container relative z-10">
-          <div className="text-center mb-5">
-            <h2 className="section-title center">Our Services</h2>
-            <p className="section-subtitle center">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-4">
+              <div className="w-2 h-2 rounded-full bg-primary"></div>
+              <p className="text-primary text-sm uppercase tracking-wider font-semibold">
+                What We Offer
+              </p>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
+              Our Services
+            </h2>
+            <p className="text-gray-700 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
               Comprehensive medical care tailored to your family's needs
             </p>
           </div>
@@ -495,99 +532,69 @@ const FamilyMedicine = () => {
               </div>
             </div>
           </div>
-          <div
-            className="row g-4"
-            style={{
-              maxHeight: "70vh",
-              overflowY: "auto",
-              paddingRight: "6px",
-            }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[70vh] overflow-y-auto pr-2">
             {(filteredServices.length ? filteredServices : services).map(
               (item) => (
-                <div key={item.key} className="col-sm-6 col-lg-4">
-                  <article
-                    tabIndex={0}
-                    aria-label={item.label}
-                    className="service-card h-100 rounded-4 overflow-hidden d-flex flex-column position-relative bg-white text-start"
+                <article
+                  key={item.key}
+                  tabIndex={0}
+                  aria-label={item.label}
+                  className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden flex flex-col relative text-start cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-2"
+                  onMouseEnter={() => setHovered(item.key)}
+                  onMouseLeave={() => setHovered(null)}
+                  onFocus={() => setHovered(item.key)}
+                  onBlur={() => setHovered(null)}>
+                  <div
+                    className="position-relative overflow-hidden"
                     style={{
-                      boxShadow:
-                        hovered === item.key
-                          ? "0 18px 42px rgba(15,23,42,0.16)"
-                          : "0 8px 26px rgba(15,23,42,0.12)",
-                      transition: "all 0.3s ease",
-                      transform:
-                        hovered === item.key
-                          ? "translateY(-6px) scale(1.01)"
-                          : "translateY(0) scale(1)",
-                      border: "1px solid rgba(0,0,0,0.06)",
-                      cursor: "pointer",
-                    }}
-                    onMouseEnter={() => setHovered(item.key)}
-                    onMouseLeave={() => setHovered(null)}
-                    onFocus={() => setHovered(item.key)}
-                    onBlur={() => setHovered(null)}>
+                      height: 190,
+                      background: `linear-gradient(180deg, rgba(15,23,42,0.65), rgba(15,23,42,0.9)), url('${
+                        serviceImages[item.key] ||
+                        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&auto=format&fit=crop"
+                      }') center/cover`,
+                    }}>
                     <div
-                      className="position-relative overflow-hidden"
+                      className="position-absolute inset-0"
                       style={{
-                        height: 190,
-                        background: `linear-gradient(180deg, rgba(15,23,42,0.65), rgba(15,23,42,0.9)), url('${
-                          serviceImages[item.key] ||
-                          "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&auto=format&fit=crop"
-                        }') center/cover`,
-                      }}>
-                      <div
-                        className="position-absolute inset-0"
+                        background:
+                          "linear-gradient(180deg, rgba(15,23,42,0.35), rgba(15,23,42,0.85))",
+                      }}></div>
+                  </div>
+                  <div className="flex flex-col gap-2 p-5">
+                    <h5 className="font-bold mb-1 text-gray-900 text-lg leading-tight">
+                      {item.label}
+                    </h5>
+                    <p className="mb-0 text-gray-600 leading-relaxed text-base">
+                      Tailored care and coordination from our family medicine
+                      team with proactive guidance, timely follow-ups, and
+                      compassionate support.
+                    </p>
+                    <div className="mt-3 d-flex align-items-center justify-content-between">
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-primary px-3 fw-semibold"
+                        onClick={() => handleBook(item.label)}>
+                        Book
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center"
                         style={{
-                          background:
-                            "linear-gradient(180deg, rgba(15,23,42,0.35), rgba(15,23,42,0.85))",
-                        }}></div>
+                          width: 44,
+                          height: 44,
+                          boxShadow: "0 10px 26px rgba(37,99,235,0.28)",
+                          transition:
+                            "transform 0.25s ease, box-shadow 0.25s ease",
+                        }}
+                        aria-label={`Learn more about ${item.label}`}
+                        onClick={() => handleLearnMore(item.label)}>
+                        <i
+                          className="fas fa-arrow-right"
+                          aria-hidden="true"></i>
+                      </button>
                     </div>
-                    <div
-                      className="d-flex flex-column gap-2"
-                      style={{ padding: "1.25rem" }}>
-                      <h5
-                        className="fw-bold mb-1"
-                        style={{ color: "#0f172a", lineHeight: 1.35 }}>
-                        {item.label}
-                      </h5>
-                      <p
-                        className="mb-0"
-                        style={{
-                          color: "#475569",
-                          lineHeight: 1.6,
-                          fontSize: "0.96rem",
-                        }}>
-                        Tailored care and coordination from our family medicine
-                        team with proactive guidance, timely follow-ups, and
-                        compassionate support.
-                      </p>
-                      <div className="mt-3 d-flex align-items-center justify-content-between">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-primary px-3 fw-semibold"
-                          onClick={() => handleBook(item.label)}>
-                          Book
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center"
-                          style={{
-                            width: 44,
-                            height: 44,
-                            boxShadow: "0 10px 26px rgba(37,99,235,0.28)",
-                            transition:
-                              "transform 0.25s ease, box-shadow 0.25s ease",
-                          }}
-                          aria-label={`Learn more about ${item.label}`}
-                          onClick={() => handleLearnMore(item.label)}>
-                          <i
-                            className="fas fa-arrow-right"
-                            aria-hidden="true"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                </div>
+                  </div>
+                </article>
               )
             )}
           </div>
@@ -656,69 +663,27 @@ const FamilyMedicine = () => {
       </section>
 
       {/* CTA */}
-      <section className="cta-section section">
-        <div className="container cta-container">
-          <div style={{ flex: 1 }}>
-            <h2 style={{ margin: 0, marginBottom: "10px", fontSize: "24px" }}>
-              Ready to Schedule Your Family's Healthcare?
-            </h2>
-            <p style={{ margin: 0, opacity: 0.95 }}>
-              Book an appointment with our family medicine team today.
-            </p>
-          </div>
-          <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
-            <a
-              href="/appointment"
-              className="cta-btn"
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "14px 24px",
-                minWidth: "160px",
-              }}>
-              <span style={{ fontWeight: "700", fontSize: "16px" }}>Book</span>
-              <span style={{ fontWeight: "700", fontSize: "16px" }}>
-                Appointment
-              </span>
-            </a>
+      <section className="relative py-14 md:py-16 reveal-on-scroll bg-gradient-to-r from-primary via-blue-700 to-indigo-700">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="space-y-2">
+              <h2 className="text-3xl md:text-4xl font-bold text-white">
+                Ready to Schedule Your Family's Healthcare?
+              </h2>
+              <p className="text-blue-50 text-lg">
+                Book an appointment with our family medicine team today.
+              </p>
+            </div>
             <Link
-              to="/contact"
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "12px 22px",
-                border: "2px solid rgba(255, 255, 255, 0.3)",
-                borderRadius: "8px",
-                color: "rgba(255, 255, 255, 0.9)",
-                textDecoration: "none",
-                fontWeight: "600",
-                minWidth: "140px",
-                transition: "all 0.3s ease",
-                background: "rgba(255, 255, 255, 0.1)",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = "rgba(255, 255, 255, 0.2)";
-                e.target.style.borderColor = "rgba(255, 255, 255, 0.5)";
-                e.target.style.color = "#fff";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = "rgba(255, 255, 255, 0.1)";
-                e.target.style.borderColor = "rgba(255, 255, 255, 0.3)";
-                e.target.style.color = "rgba(255, 255, 255, 0.9)";
-              }}>
-              <span style={{ fontWeight: "600", fontSize: "16px" }}>
-                Contact
-              </span>
-              <span style={{ fontWeight: "600", fontSize: "16px" }}>Us</span>
+              to="/appointment"
+              className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              Book Appointment
+              <span className="ml-2">→</span>
             </Link>
           </div>
         </div>
       </section>
-    </div>
+    </>
   );
 };
 

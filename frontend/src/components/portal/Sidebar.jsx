@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../../contexts/AuthContext";
 import { useConfirm } from "../../hooks/useConfirm";
+import {
+  getUnreadCount as getDoctorUnreadCount,
+  getPatientUnreadCount,
+} from "../../services/notificationService";
 import {
   FaHome,
   FaUserMd,
@@ -20,6 +24,7 @@ import {
   FaUserCircle,
   FaChartLine,
   FaTasks,
+  FaFileAlt,
 } from "react-icons/fa";
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -32,16 +37,18 @@ const Sidebar = ({ isOpen, onClose }) => {
     // Fetch notification counts dynamically
     const fetchNotificationCounts = async () => {
       try {
-        // In production, this would call an API
-        // For now, using mock data that updates
-        const counts = {
-          "/admin/notifications": 3,
-          "/admin/kyc-review": 8, // KYC badge count
-          "/doctor/notifications": 5,
-          "/patient/notifications": 2,
-          "/staff/notifications": 1,
-        };
-        setNotificationCounts(counts);
+        let counts = {};
+        if (user?.role === "doctor" && user?.doctorId) {
+          const res = await getDoctorUnreadCount(user.doctorId);
+          counts["/doctor/notifications"] = res?.count ?? res?.data?.count ?? 0;
+        } else if (user?.role === "patient" && user?.patientId) {
+          const res = await getPatientUnreadCount(user.patientId);
+          counts["/patient/notifications"] =
+            res?.count ?? res?.data?.count ?? 0;
+        } else {
+          counts = {};
+        }
+        setNotificationCounts((prev) => ({ ...prev, ...counts }));
       } catch (error) {
         console.error("Failed to fetch notification counts:", error);
       }
@@ -51,7 +58,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     // Refresh counts every 30 seconds
     const interval = setInterval(fetchNotificationCounts, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user]);
 
   const isActive = (path) => {
     if (
@@ -93,6 +100,12 @@ const Sidebar = ({ isOpen, onClose }) => {
         path: "/admin/patients",
         icon: FaUserCircle,
         label: "Patients",
+        badge: null,
+      },
+      {
+        path: "/admin/patient-forms",
+        icon: FaFileAlt,
+        label: "Patient Forms",
         badge: null,
       },
       { path: "/admin/doctors", icon: FaUserMd, label: "Doctors", badge: null },
@@ -140,6 +153,12 @@ const Sidebar = ({ isOpen, onClose }) => {
         path: "/doctor/patients",
         icon: FaUserCircle,
         label: "Patients",
+        badge: null,
+      },
+      {
+        path: "/doctor/patient-forms",
+        icon: FaFileAlt,
+        label: "Patient Forms",
         badge: null,
       },
       {
@@ -264,7 +283,6 @@ const Sidebar = ({ isOpen, onClose }) => {
                 const active = isActive(item.path);
                 const handleClick = (e) => {
                   onClose();
-                  // Add click feedback
                   const element = e.currentTarget;
                   element.style.transform = "scale(0.98)";
                   setTimeout(() => {

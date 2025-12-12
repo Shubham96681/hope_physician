@@ -107,4 +107,3 @@ const prescriptionService = {
 };
 
 export default prescriptionService;
-export * from "./prescriptionService";
