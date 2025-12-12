@@ -116,3 +116,22 @@ export const getAttendance = async (params = {}) => {
     throw error;
   }
 };
+
+export const updateDoctor = async (doctorId, doctorData) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.put(
+      `${API_BASE}/admin/doctors/${doctorId}`,
+      doctorData,
+      {
+        timeout: 3000,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

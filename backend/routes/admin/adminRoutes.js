@@ -11,6 +11,7 @@ const {
   getDoctors,
   getAllPatients,
   getAllAppointments,
+  updateDoctor,
 } = require("../../controllers/admin/adminController");
 const {
   getEmployees,
@@ -24,6 +25,7 @@ router.use(requireRole(["admin"]));
 
 // Doctor routes
 router.get("/doctors", getDoctors);
+router.put("/doctors/:id", updateDoctor);
 
 // Employee routes
 router.get("/employees", getEmployees);

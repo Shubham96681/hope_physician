@@ -178,8 +178,105 @@ const getAllAppointments = async (req, res) => {
   }
 };
 
+/**
+ * Update doctor
+ */
+const updateDoctor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Remove fields that shouldn't be updated directly
+    const {
+      id: _id,
+      empId,
+      createdAt,
+      updatedAt,
+      portalUser,
+      appointments,
+      ...doctorData
+    } = updateData;
+
+    // Check if doctor exists
+    const existingDoctor = await prisma.doctor.findUnique({
+      where: { id },
+      include: {
+        portalUser: {
+          select: {
+            id: true,
+            email: true,
+            isActive: true,
+          },
+        },
+      },
+    });
+
+    if (!existingDoctor) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+
+    // If email is being updated, check if it conflicts with another doctor
+    if (doctorData.email && doctorData.email !== existingDoctor.email) {
+      const emailExists = await prisma.doctor.findUnique({
+        where: { email: doctorData.email },
+      });
+      if (emailExists) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already exists",
+        });
+      }
+    }
+
+    // Update doctor
+    const updatedDoctor = await prisma.doctor.update({
+      where: { id },
+      data: doctorData,
+      include: {
+        portalUser: {
+          select: {
+            id: true,
+            role: true,
+            isActive: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    // If email changed and doctor has portal user, update portal user email too
+    if (
+      doctorData.email &&
+      existingDoctor.portalUser &&
+      doctorData.email !== existingDoctor.email
+    ) {
+      await prisma.portalUser.update({
+        where: { id: existingDoctor.portalUser.id },
+        data: { email: doctorData.email },
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Doctor updated successfully",
+      data: updatedDoctor,
+    });
+  } catch (error) {
+    console.error("Update doctor error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating doctor",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getDoctors,
   getAllPatients,
   getAllAppointments,
+  updateDoctor,
 };
