@@ -112,11 +112,13 @@ deploy_app() {
             cd - > /dev/null
         else
             echo -e "${YELLOW}📥 Cloning repository...${NC}"
+            echo "⏳ Cloning may take a few minutes..."
             mkdir -p "$APP_DIR"
             git clone "$REPO_URL" "$APP_DIR" || {
                 echo -e "${RED}❌ Failed to clone repository${NC}"
                 return 1
             }
+            echo "✅ Repository cloned"
         fi
     fi
     
@@ -130,7 +132,9 @@ deploy_app() {
         
         # Install dependencies
         echo -e "${YELLOW}📦 Installing backend dependencies...${NC}"
+        echo "⏳ This may take a few minutes..."
         npm ci --production=false || npm install
+        echo "✅ Dependencies installed"
         
         # Generate Prisma Client if exists
         if [ -f "prisma/schema.prisma" ]; then
@@ -188,10 +192,13 @@ EOF
         if [ ! -d "$FRONTEND_DIST" ] || [ ! "$(ls -A $FRONTEND_DIST 2>/dev/null)" ]; then
             # Install dependencies
             echo -e "${YELLOW}📦 Installing frontend dependencies...${NC}"
+            echo "⏳ This may take a few minutes..."
             npm ci --production=false || npm install
+            echo "✅ Dependencies installed"
             
             # Build frontend with base path if needed
             echo -e "${YELLOW}🏗️  Building frontend...${NC}"
+            echo "⏳ Building may take a few minutes..."
             if [ "$NGINX_FRONTEND_PATH" != "/" ]; then
                 # Set base path for React Router
                 export VITE_BASE_PATH="$NGINX_FRONTEND_PATH"
