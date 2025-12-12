@@ -20,6 +20,7 @@ import {
   FaUserCircle,
   FaChartLine,
   FaTasks,
+  FaFileAlt,
 } from "react-icons/fa";
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -95,6 +96,12 @@ const Sidebar = ({ isOpen, onClose }) => {
         label: "Patients",
         badge: null,
       },
+      {
+        path: "/admin/patient-forms",
+        icon: FaFileAlt,
+        label: "Patient Forms",
+        badge: null,
+      },
       { path: "/admin/doctors", icon: FaUserMd, label: "Doctors", badge: null },
       {
         path: "/admin/appointments",
@@ -140,6 +147,12 @@ const Sidebar = ({ isOpen, onClose }) => {
         path: "/doctor/patients",
         icon: FaUserCircle,
         label: "Patients",
+        badge: null,
+      },
+      {
+        path: "/doctor/patient-forms",
+        icon: FaFileAlt,
+        label: "Patient Forms",
         badge: null,
       },
       {
