@@ -13,21 +13,29 @@
     <!-- Runtime API Configuration - Can be overridden without rebuild -->
     <script>
       // Auto-detect API URL based on current host
-      // Override this if you need a different API URL
+      // Production: Use Nginx reverse proxy (/api)
+      // Development: Use direct backend (localhost:5000/api)
       window.APP_CONFIG = window.APP_CONFIG || {};
       if (!window.APP_CONFIG.API_URL) {
         const host = window.location.hostname;
-        // Production server
+        const protocol = window.location.protocol;
+        const port = window.location.port;
+
+        // Production server - Use Nginx reverse proxy (recommended)
         if (host === "52.66.236.157" || host.includes("52.66.236.157")) {
-          window.APP_CONFIG.API_URL = "http://52.66.236.157:5000/api";
+          // Use relative path for Nginx proxy (best practice)
+          // Nginx will proxy /api to localhost:5000
+          window.APP_CONFIG.API_URL = "/api";
+          // Alternative: Use full URL if Nginx not configured
+          // window.APP_CONFIG.API_URL = "http://52.66.236.157/api";
         }
-        // Development
+        // Development - Use direct backend
         else if (host === "localhost" || host === "127.0.0.1") {
           window.APP_CONFIG.API_URL = "http://localhost:5000/api";
         }
-        // Default: use same host with port 5000
+        // Default: Use relative path (assumes Nginx proxy)
         else {
-          window.APP_CONFIG.API_URL = `http://${host}:5000/api`;
+          window.APP_CONFIG.API_URL = "/api";
         }
       }
       console.log("🔧 API Configuration:", window.APP_CONFIG.API_URL);

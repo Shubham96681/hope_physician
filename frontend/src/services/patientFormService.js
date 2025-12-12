@@ -19,9 +19,21 @@ const getApiUrl = () => {
   // Priority 3: Auto-detect based on current host
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
-    // If running on production server, use production API
+    const protocol = window.location.protocol;
+
+    // Production server - Use Nginx reverse proxy (recommended)
     if (host === "52.66.236.157" || host.includes("52.66.236.157")) {
-      return `http://${host}:5000/api`;
+      // Use relative path for Nginx proxy (best practice)
+      // This avoids firewall issues and is more secure
+      return "/api";
+    }
+    // Development - Use direct backend
+    else if (host === "localhost" || host === "127.0.0.1") {
+      return "http://localhost:5000/api";
+    }
+    // Default: Use relative path (assumes Nginx proxy)
+    else {
+      return "/api";
     }
   }
   // Fallback: localhost for development
