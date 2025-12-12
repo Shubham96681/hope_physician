@@ -485,10 +485,14 @@ config.apps.forEach(app => {
         nginxConfig += '        proxy_cache_bypass \\\$http_upgrade;\n';
         nginxConfig += '    }\n\n';
     } else {
-        // Sub-path app
-        nginxConfig += '    location ' + frontendPath + ' {\n';
-        nginxConfig += '        alias ' + frontendDir + '/;\n';
-        nginxConfig += '        try_files \\\$uri \\\$uri/ ' + frontendPath + '/index.html;\n';
+        // Sub-path app - CORRECT alias usage (no named locations)
+        nginxConfig += '    location = ' + frontendPath + ' {\n';
+        nginxConfig += '        return 301 ' + frontendPath + '/;\n';
+        nginxConfig += '    }\n\n';
+        nginxConfig += '    location ' + frontendPath + '/ {\n';
+        nginxConfig += '        alias ' + frontendDir + '/;\n';  // Trailing slash required
+        nginxConfig += '        index index.html;\n';
+        nginxConfig += '        try_files \\\$uri \\\$uri/ /index.html;\n';  // Simple, no named location
         nginxConfig += '    }\n\n';
         nginxConfig += '    location ' + apiPath + ' {\n';
         nginxConfig += '        proxy_pass http://localhost:' + backendPort + ';\n';
