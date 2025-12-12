@@ -21,6 +21,29 @@ if [ ! -f "$CONFIG_FILE" ]; then
     exit 1
 fi
 
+# Memory optimization functions
+free_memory() {
+    echo -e "${YELLOW}🧹 Freeing memory...${NC}"
+    sudo sync
+    sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches' 2>/dev/null || true
+    sleep 1
+}
+
+check_memory() {
+    local AVAILABLE=$(free -m | awk 'NR==2{printf "%.0f", $7}')
+    echo -e "${BLUE}💾 Available memory: ${AVAILABLE}MB${NC}"
+    if [ "$AVAILABLE" -lt 200 ]; then
+        echo -e "${YELLOW}⚠️  Low memory detected, freeing cache...${NC}"
+        free_memory
+    fi
+}
+
+# Set Node.js memory limits for low-memory systems
+export NODE_OPTIONS="--max-old-space-size=512"
+export NPM_CONFIG_PREFER_OFFLINE=true
+export NPM_CONFIG_AUDIT=false
+export NPM_CONFIG_FUND=false
+
 # Clear caches and free up space
 echo -e "${YELLOW}🧹 Clearing caches and freeing up disk space...${NC}"
 
@@ -51,9 +74,12 @@ if [ -d ~/.pm2/logs ]; then
     find ~/.pm2/logs -name "*.log" -type f -mtime +3 -delete 2>/dev/null || true
 fi
 
-# Show disk space
+# Show disk space and memory
 echo -e "${GREEN}📊 Current disk space:${NC}"
 df -h / | tail -1
+echo -e "${GREEN}💾 Current memory:${NC}"
+free -h | grep Mem
+check_memory
 
 # Install build tools (only if not already installed)
 echo -e "${YELLOW}🔧 Checking build tools...${NC}"
@@ -197,24 +223,36 @@ deploy_app() {
             echo -e "${GREEN}✅ [$APP_NAME] Cleanup completed${NC}"
         fi
         
+        # Free memory before install
+        check_memory
+        free_memory
+        
         # Clear npm cache before install
         echo -e "${YELLOW}🧹 [$APP_NAME] Clearing npm cache...${NC}"
         npm cache clean --force 2>/dev/null || true
         
-        # Install dependencies with timeout and progress
-        echo -e "${YELLOW}📦 [$APP_NAME] Installing backend dependencies...${NC}"
-        echo -e "${YELLOW}⏳ This may take 2-5 minutes, please wait...${NC}"
-        echo -e "${YELLOW}💡 Installing packages (this can appear stuck but is working)...${NC}"
+        # Install dependencies with memory-optimized flags
+        echo -e "${YELLOW}📦 [$APP_NAME] Installing backend dependencies (memory-optimized)...${NC}"
+        echo -e "${YELLOW}⏳ This may take 3-7 minutes on low-memory systems...${NC}"
+        echo -e "${YELLOW}💡 Using memory-efficient installation...${NC}"
         
-        # Use timeout to prevent hanging, with progress indicator
-        if timeout 900 npm ci --production=false --legacy-peer-deps --prefer-offline --no-audit 2>&1 | sed "s/^/[$APP_NAME-BACKEND] /"; then
+        # Memory-optimized npm install with reduced concurrency
+        export NPM_CONFIG_MAXSOCKETS=1
+        export NPM_CONFIG_PROGRESS=false
+        
+        # Use timeout with memory-efficient flags
+        if timeout 1200 npm ci --production=false --legacy-peer-deps --prefer-offline --no-audit --no-fund --loglevel=error 2>&1 | sed "s/^/[$APP_NAME-BACKEND] /"; then
             echo -e "${GREEN}✅ [$APP_NAME] Backend dependencies installed successfully${NC}"
-        elif timeout 900 npm install --legacy-peer-deps --prefer-offline --no-audit 2>&1 | sed "s/^/[$APP_NAME-BACKEND] /"; then
+        elif timeout 1200 npm install --legacy-peer-deps --prefer-offline --no-audit --no-fund --loglevel=error 2>&1 | sed "s/^/[$APP_NAME-BACKEND] /"; then
             echo -e "${GREEN}✅ [$APP_NAME] Backend dependencies installed successfully (using npm install)${NC}"
         else
             echo -e "${RED}❌ [$APP_NAME] Failed to install backend dependencies (timeout or error)${NC}"
             return 1
         fi
+        
+        # Free memory after install
+        free_memory
+        check_memory
         
         # Generate Prisma Client if exists
         if [ -f "prisma/schema.prisma" ]; then
@@ -279,39 +317,61 @@ EOF
                 echo -e "${GREEN}✅ [$APP_NAME] Frontend cleanup completed${NC}"
             fi
             
+            # Free memory before install
+            check_memory
+            free_memory
+            
             # Clear npm cache before install
             echo -e "${YELLOW}🧹 [$APP_NAME] Clearing npm cache...${NC}"
             npm cache clean --force 2>/dev/null || true
             
-            # Install dependencies with timeout and progress
-            echo -e "${YELLOW}📦 [$APP_NAME] Installing frontend dependencies...${NC}"
-            echo -e "${YELLOW}⏳ This may take 2-5 minutes, please wait...${NC}"
-            echo -e "${YELLOW}💡 Installing packages (this can appear stuck but is working)...${NC}"
+            # Install dependencies with memory-optimized flags
+            echo -e "${YELLOW}📦 [$APP_NAME] Installing frontend dependencies (memory-optimized)...${NC}"
+            echo -e "${YELLOW}⏳ This may take 3-7 minutes on low-memory systems...${NC}"
+            echo -e "${YELLOW}💡 Using memory-efficient installation...${NC}"
             
-            # Use timeout to prevent hanging, with progress indicator
-            if timeout 900 npm ci --legacy-peer-deps --production=false --prefer-offline --no-audit 2>&1 | sed "s/^/[$APP_NAME-FRONTEND] /"; then
+            # Memory-optimized npm install with reduced concurrency
+            export NPM_CONFIG_MAXSOCKETS=1
+            export NPM_CONFIG_PROGRESS=false
+            
+            # Use timeout with memory-efficient flags
+            if timeout 1200 npm ci --legacy-peer-deps --production=false --prefer-offline --no-audit --no-fund --loglevel=error 2>&1 | sed "s/^/[$APP_NAME-FRONTEND] /"; then
                 echo -e "${GREEN}✅ [$APP_NAME] Frontend dependencies installed successfully${NC}"
-            elif timeout 900 npm install --legacy-peer-deps --prefer-offline --no-audit 2>&1 | sed "s/^/[$APP_NAME-FRONTEND] /"; then
+            elif timeout 1200 npm install --legacy-peer-deps --prefer-offline --no-audit --no-fund --loglevel=error 2>&1 | sed "s/^/[$APP_NAME-FRONTEND] /"; then
                 echo -e "${GREEN}✅ [$APP_NAME] Frontend dependencies installed successfully (using npm install)${NC}"
             else
                 echo -e "${RED}❌ [$APP_NAME] Failed to install frontend dependencies (timeout or error)${NC}"
                 return 1
             fi
             
-            # Build frontend with base path if needed
-            echo -e "${YELLOW}🏗️  [$APP_NAME] Building frontend...${NC}"
-            echo -e "${YELLOW}⏳ Building may take 2-5 minutes, please wait...${NC}"
+            # Free memory after install
+            free_memory
+            check_memory
+            
+            # Free memory before build
+            check_memory
+            free_memory
+            
+            # Build frontend with base path if needed (memory-optimized)
+            echo -e "${YELLOW}🏗️  [$APP_NAME] Building frontend (memory-optimized)...${NC}"
+            echo -e "${YELLOW}⏳ Building may take 3-8 minutes on low-memory systems...${NC}"
             if [ "$NGINX_FRONTEND_PATH" != "/" ]; then
                 # Set base path for React Router
                 export VITE_BASE_PATH="$NGINX_FRONTEND_PATH"
                 export VITE_API_URL="$NGINX_API_PATH"
             fi
-            if timeout 600 bash -c "$FRONTEND_BUILD_CMD" 2>&1 | sed "s/^/[$APP_NAME-BUILD] /"; then
+            # Use memory-limited Node.js for build
+            export NODE_OPTIONS="--max-old-space-size=512"
+            if timeout 900 bash -c "$FRONTEND_BUILD_CMD" 2>&1 | sed "s/^/[$APP_NAME-BUILD] /"; then
                 echo -e "${GREEN}✅ [$APP_NAME] Frontend built successfully${NC}"
             else
                 echo -e "${RED}❌ [$APP_NAME] Frontend build failed${NC}"
                 return 1
             fi
+            
+            # Free memory after build
+            free_memory
+            check_memory
         else
             echo -e "${GREEN}✅ [$APP_NAME] Frontend build already exists (skipping build)${NC}"
         fi
@@ -333,9 +393,12 @@ EOF
 # Read apps from config
 APPS=$(node -e "const config = require('./apps.config.json'); console.log(config.apps.map(a => a.name).join(' '))")
 
-# Show initial disk space
+# Show initial disk space and memory
 echo -e "\n${GREEN}📊 Initial disk space:${NC}"
 df -h / | tail -1
+echo -e "${GREEN}💾 Initial memory:${NC}"
+free -h | grep Mem
+check_memory
 
 echo -e "\n${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║         MULTI-APPLICATION DEPLOYMENT STARTING                   ║${NC}"
@@ -470,7 +533,7 @@ fi
 echo -e "\n${YELLOW}📊 PM2 Status:${NC}"
 pm2 list
 
-# Final cleanup
+# Final cleanup and memory free
 echo -e "\n${YELLOW}🧹 Final cleanup...${NC}"
 npm cache clean --force 2>/dev/null || true
 if [ -f /etc/debian_version ]; then
@@ -479,8 +542,13 @@ elif [ -f /etc/redhat-release ] || [ -f /etc/system-release ]; then
     sudo yum clean all 2>/dev/null || sudo dnf clean all 2>/dev/null || true
 fi
 
+# Final memory cleanup
+free_memory
+
 echo -e "\n${GREEN}📊 Final disk space:${NC}"
 df -h / | tail -1
+echo -e "${GREEN}💾 Final memory:${NC}"
+free -h | grep Mem
 
 echo -e "\n${GREEN}╔════════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║         MULTI-APPLICATION DEPLOYMENT COMPLETED!                ║${NC}"
