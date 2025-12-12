@@ -282,7 +282,7 @@ const Home = () => {
                 <Link
                   to="/appointment"
                   className="inline-flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105 reveal-on-scroll">
-                  <span>Learn More</span>
+                  <span>Visit Urgent Care - Walk-In Welcome</span>
                   <svg
                     className="w-5 h-5"
                     fill="none"
