@@ -25,7 +25,11 @@ const DataTable = ({
         columns.some((col) => {
           const accessor = col.accessor;
           const value =
-            typeof accessor === "function" ? accessor(row) : row[col.key];
+            typeof accessor === "function"
+              ? accessor(row)
+              : col.key
+              ? row[col.key]
+              : undefined;
           return value
             ?.toString()
             .toLowerCase()
@@ -42,11 +46,15 @@ const DataTable = ({
     const aValue =
       typeof targetCol?.accessor === "function"
         ? targetCol.accessor(a)
-        : a[sortConfig.key];
+        : sortConfig.key
+        ? a[sortConfig.key]
+        : undefined;
     const bValue =
       typeof targetCol?.accessor === "function"
         ? targetCol.accessor(b)
-        : b[sortConfig.key];
+        : sortConfig.key
+        ? b[sortConfig.key]
+        : undefined;
 
     if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
     if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
@@ -92,21 +100,30 @@ const DataTable = ({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              {columns.map((column) => (
-                <th
-                  key={column.key}
-                  onClick={() => column.sortable && handleSort(column.key)}
-                  className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                    column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
-                  }`}>
-                  <div className="flex items-center space-x-1">
-                    <span>{column.label}</span>
-                    {column.sortable && sortConfig.key === column.key && (
-                      <span>{sortConfig.direction === "asc" ? "↑" : "↓"}</span>
-                    )}
-                  </div>
-                </th>
-              ))}
+              {columns.map((column, colIndex) => {
+                const columnKey =
+                  column.key ??
+                  column.accessor?.name ??
+                  column.label ??
+                  `col-${colIndex}`;
+                return (
+                  <th
+                    key={columnKey}
+                    onClick={() => column.sortable && handleSort(column.key)}
+                    className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                      column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
+                    }`}>
+                    <div className="flex items-center space-x-1">
+                      <span>{column.label}</span>
+                      {column.sortable && sortConfig.key === column.key && (
+                        <span>
+                          {sortConfig.direction === "asc" ? "↑" : "↓"}
+                        </span>
+                      )}
+                    </div>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -126,13 +143,20 @@ const DataTable = ({
                   className={
                     onRowClick ? "cursor-pointer hover:bg-gray-50" : ""
                   }>
-                  {columns.map((column) => {
+                  {columns.map((column, colIndex) => {
+                    const columnKey =
+                      column.key ??
+                      column.accessor?.name ??
+                      column.label ??
+                      `col-${colIndex}`;
                     const value = column.accessor
                       ? column.accessor(row)
-                      : row[column.key];
+                      : column.key
+                      ? row[column.key]
+                      : undefined;
                     return (
                       <td
-                        key={column.key}
+                        key={columnKey}
                         className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {column.render ? (
                           column.render(value, row)
