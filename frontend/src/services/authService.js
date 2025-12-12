@@ -55,7 +55,7 @@ export const login = async (email, password, role = null) => {
         role,
       },
       {
-        timeout: 3000, // 3 second timeout
+        timeout: 10000, // 10 second timeout for production
       }
     );
     return response.data;
@@ -122,7 +122,7 @@ export const getCurrentUser = async () => {
 
     const response = await axios.get(`${API_BASE}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
-      timeout: 3000,
+      timeout: 10000, // 10 second timeout for production
     });
     return response.data;
   } catch (error) {
