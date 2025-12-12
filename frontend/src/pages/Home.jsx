@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -9,15 +9,20 @@ import "../styles/Home.css";
 import heroImg from "../assets/images/hero2.jpg";
 import aboutImg from "../assets/images/about.jpg";
 import familyImg from "../assets/images/family.jpeg";
-import pediatricsImg from "../assets/images/pediatrics.jpg";
 import mensImg from "../assets/images/mens.jpeg";
 import womensImg from "../assets/images/women.jpeg";
-import occupationalImg from "../assets/images/occupational.jpeg";
-import geriatricImg from "../assets/images/geriatric.jpeg";
 import doctorImg from "../assets/images/doctor.jpg";
 import appointmentIcon from "../assets/images/appointment-icon.webp";
 import medSupportImg from "../assets/images/med_support.jpg";
 import adminSupportImg from "../assets/images/admin_support.jpg";
+import urgentCareImg from "../assets/images/urgent-care.jpg";
+import familyMedicineImg from "../assets/images/family-medicine.jpg";
+import pediatricCareImg from "../assets/images/pediatric-care.jpg";
+import mensHealthImg from "../assets/images/mens-health.jpg";
+import womensHealthImg from "../assets/images/womens-health.jpg";
+import occupationalHealthImg from "../assets/images/occupational-health.jpg";
+import geriatricCareImg from "../assets/images/geriatric-care.jpg";
+import viewMoreServicesImg from "../assets/images/view-more-services.jpg";
 
 const Home = () => {
   const [formData, setFormData] = useState({
@@ -72,7 +77,7 @@ const Home = () => {
         message: "Thank you! Your message has been sent successfully.",
       });
       setFormData({ name: "", email: "", message: "", privacy: false });
-    } catch (error) {
+    } catch {
       setFormStatus({
         type: "error",
         message: "Failed to send message. Please try again later.",
@@ -174,43 +179,43 @@ const Home = () => {
   // Services (drives the dynamic Services section)
   const services = [
     {
-      img: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=900&q=90&auto=format&fit=crop",
+      img: urgentCareImg,
       title: "Urgent Care",
       desc: "Walk-in urgent care and immediate care services in Kinston, NC. No appointment needed. Located at 2104 North Herritage Street, Kinston, NC 28501.",
       path: "/urgent-care",
     },
     {
-      img: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=900&q=90&auto=format&fit=crop",
+      img: familyMedicineImg,
       title: "Family Medicine",
       desc: "Comprehensive primary healthcare for individuals & families in Kinston, NC.",
       path: "/family-medicine",
     },
     {
-      img: "https://images.unsplash.com/photo-1631815588090-d4bfec5b1ccb?w=900&q=90&auto=format&fit=crop",
+      img: pediatricCareImg,
       title: "Pediatric Care",
       desc: "Compassionate care for infants, children and adolescents in Kinston, NC.",
       path: "/pediatric-care",
     },
     {
-      img: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=900&q=90&auto=format&fit=crop",
+      img: mensHealthImg,
       title: "Men's Health",
       desc: "Preventive & specialized care for men in Kinston, NC.",
       path: "/mens-health",
     },
     {
-      img: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=900&q=90&auto=format&fit=crop",
+      img: womensHealthImg,
       title: "Women's Health",
       desc: "Gynecological and maternal health services in Kinston, NC.",
       path: "/womens-health",
     },
     {
-      img: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=90&auto=format&fit=crop",
+      img: occupationalHealthImg,
       title: "Occupational Health",
       desc: "Workplace health programmes & screenings in Kinston, NC.",
       path: "/occupational-health",
     },
     {
-      img: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=900&q=90&auto=format&fit=crop",
+      img: geriatricCareImg,
       title: "Geriatric Care",
       desc: "Holistic senior care & chronic disease management in Kinston, NC.",
       path: "/geriatric-care",
@@ -251,17 +256,6 @@ const Home = () => {
       },
     ],
   };
-
-  // Gradient overlay colors for service cards
-  const overlayGradients = [
-    "bg-gradient-to-br from-primary/80 to-blue-700/80",
-    "bg-gradient-to-br from-teal-500/80 to-teal-600/80",
-    "bg-gradient-to-br from-indigo-500/80 to-indigo-600/80",
-    "bg-gradient-to-br from-blue-600/80 to-primary/80",
-    "bg-gradient-to-br from-cyan-500/80 to-teal-600/80",
-    "bg-gradient-to-br from-primary/80 to-indigo-700/80",
-    "bg-gradient-to-br from-teal-600/80 to-primary/80",
-  ];
 
   const testimonials = [
     {
@@ -880,15 +874,11 @@ const Home = () => {
           {/* Services Carousel */}
           <div className="services-carousel-wrapper">
             <Slider {...carouselSettings}>
-              {services.map((s, i) => (
+              {services.map((s) => (
                 <div key={s.path} className="px-3">
                   <div className="support-service-box relative rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                    {/* Image with Overlay */}
+                    {/* Image */}
                     <div className="relative h-64 overflow-hidden">
-                      <div
-                        className={`service-overlay absolute inset-0 z-10 ${
-                          overlayGradients[i % overlayGradients.length]
-                        }`}></div>
                       <img
                         src={s.img}
                         alt={`${
@@ -936,9 +926,8 @@ const Home = () => {
                   to="/departments"
                   className="support-service-box relative rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 block">
                   <div className="relative h-64 overflow-hidden">
-                    <div className="service-overlay absolute inset-0 z-10 bg-gradient-to-br from-teal-500/80 to-teal-600/80"></div>
                     <img
-                      src={doctorImg}
+                      src={viewMoreServicesImg}
                       alt="View all medical services at Hope Physicians"
                       className="w-full h-full object-cover"
                       loading="lazy"
