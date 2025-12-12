@@ -42,36 +42,56 @@ jobs:
       timeout-minutes: 5
       run: |
         echo "📦 Copying deployment scripts to EC2..."
-        echo "🔍 Testing SSH connection..."
-        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ServerAliveInterval=5 -o ServerAliveCountMax=3 $EC2_USER@$EC2_HOST "echo 'SSH connection successful'" || {
-          echo "❌ SSH connection failed"
-          exit 1
-        }
-        echo "✅ SSH connection verified"
+        echo "🔍 Testing SSH connection to $EC2_HOST..."
+        
+        # Retry SSH connection up to 3 times
+        MAX_RETRIES=3
+        RETRY_COUNT=0
+        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+          echo "Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES..."
+          if ssh -o StrictHostKeyChecking=no -o ConnectTimeout=15 -o ServerAliveInterval=5 -o ServerAliveCountMax=3 $EC2_USER@$EC2_HOST "echo 'SSH connection successful'" 2>&1; then
+            echo "✅ SSH connection verified"
+            break
+          else
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+              echo "⏳ Retrying in 5 seconds..."
+              sleep 5
+            else
+              echo "❌ SSH connection failed after $MAX_RETRIES attempts"
+              echo "⚠️  Troubleshooting tips:"
+              echo "   1. Verify EC2 instance is running"
+              echo "   2. Check security group allows SSH (port 22) from GitHub Actions IPs"
+              echo "   3. Verify EC2_HOST secret is correct: $EC2_HOST"
+              echo "   4. Check EC2 instance public IP hasn't changed"
+              exit 1
+            fi
+          fi
+        done
         
         echo "📁 Creating deployment directory..."
-        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 $EC2_USER@$EC2_HOST "mkdir -p ~/deployment && echo 'Directory created'" || {
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=15 $EC2_USER@$EC2_HOST "mkdir -p ~/deployment && echo 'Directory created'" || {
           echo "❌ Failed to create directory"
           exit 1
         }
         echo "✅ Directory created"
         
         echo "📤 Copying deploy-multi-app.sh ($(du -h deploy-multi-app.sh | cut -f1))..."
-        timeout 60 scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ServerAliveInterval=5 deploy-multi-app.sh $EC2_USER@$EC2_HOST:~/deployment/ || {
+        timeout 60 scp -o StrictHostKeyChecking=no -o ConnectTimeout=15 -o ServerAliveInterval=5 deploy-multi-app.sh $EC2_USER@$EC2_HOST:~/deployment/ || {
           echo "❌ Failed to copy deploy-multi-app.sh"
           exit 1
         }
         echo "✅ deploy-multi-app.sh copied"
         
         echo "📤 Copying apps.config.json ($(du -h apps.config.json | cut -f1))..."
-        timeout 60 scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ServerAliveInterval=5 apps.config.json $EC2_USER@$EC2_HOST:~/deployment/ || {
+        timeout 60 scp -o StrictHostKeyChecking=no -o ConnectTimeout=15 -o ServerAliveInterval=5 apps.config.json $EC2_USER@$EC2_HOST:~/deployment/ || {
           echo "❌ Failed to copy apps.config.json"
           exit 1
         }
         echo "✅ apps.config.json copied"
         
         echo "📤 Copying ecosystem.config.js ($(du -h ecosystem.config.js | cut -f1))..."
-        timeout 60 scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ServerAliveInterval=5 ecosystem.config.js $EC2_USER@$EC2_HOST:~/deployment/ || {
+        timeout 60 scp -o StrictHostKeyChecking=no -o ConnectTimeout=15 -o ServerAliveInterval=5 ecosystem.config.js $EC2_USER@$EC2_HOST:~/deployment/ || {
           echo "❌ Failed to copy ecosystem.config.js"
           exit 1
         }
