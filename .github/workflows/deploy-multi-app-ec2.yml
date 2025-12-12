@@ -39,13 +39,45 @@ jobs:
         
     # Deploy configuration and scripts to EC2
     - name: Deploy deployment scripts to EC2
+      timeout-minutes: 5
       run: |
         echo "📦 Copying deployment scripts to EC2..."
-        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 $EC2_USER@$EC2_HOST "mkdir -p ~/deployment"
-        scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 deploy-multi-app.sh $EC2_USER@$EC2_HOST:~/deployment/ || exit 1
-        scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 apps.config.json $EC2_USER@$EC2_HOST:~/deployment/ || exit 1
-        scp -o StrictHostKeyChecking=no -o ConnectTimeout=30 ecosystem.config.js $EC2_USER@$EC2_HOST:~/deployment/ || exit 1
-        echo "✅ Deployment scripts copied"
+        echo "🔍 Testing SSH connection..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ServerAliveInterval=5 -o ServerAliveCountMax=3 $EC2_USER@$EC2_HOST "echo 'SSH connection successful'" || {
+          echo "❌ SSH connection failed"
+          exit 1
+        }
+        echo "✅ SSH connection verified"
+        
+        echo "📁 Creating deployment directory..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 $EC2_USER@$EC2_HOST "mkdir -p ~/deployment && echo 'Directory created'" || {
+          echo "❌ Failed to create directory"
+          exit 1
+        }
+        echo "✅ Directory created"
+        
+        echo "📤 Copying deploy-multi-app.sh ($(du -h deploy-multi-app.sh | cut -f1))..."
+        timeout 60 scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ServerAliveInterval=5 deploy-multi-app.sh $EC2_USER@$EC2_HOST:~/deployment/ || {
+          echo "❌ Failed to copy deploy-multi-app.sh"
+          exit 1
+        }
+        echo "✅ deploy-multi-app.sh copied"
+        
+        echo "📤 Copying apps.config.json ($(du -h apps.config.json | cut -f1))..."
+        timeout 60 scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ServerAliveInterval=5 apps.config.json $EC2_USER@$EC2_HOST:~/deployment/ || {
+          echo "❌ Failed to copy apps.config.json"
+          exit 1
+        }
+        echo "✅ apps.config.json copied"
+        
+        echo "📤 Copying ecosystem.config.js ($(du -h ecosystem.config.js | cut -f1))..."
+        timeout 60 scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ServerAliveInterval=5 ecosystem.config.js $EC2_USER@$EC2_HOST:~/deployment/ || {
+          echo "❌ Failed to copy ecosystem.config.js"
+          exit 1
+        }
+        echo "✅ ecosystem.config.js copied"
+        
+        echo "✅ All deployment scripts copied successfully"
         
     - name: Execute multi-app deployment script on EC2
       timeout-minutes: 30
