@@ -112,39 +112,184 @@ function App() {
 
         {/* Protected Portal Routes */}
         {/* Admin Routes */}
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/employees" element={<Employees />} />
-        <Route path="/admin/patients" element={<AdminPatients />} />
-        <Route path="/admin/doctors" element={<AdminDoctors />} />
-        <Route path="/admin/appointments" element={<AdminAppointments />} />
-        <Route path="/admin/kyc-review" element={<KYCReview />} />
-        <Route path="/admin/attendance" element={<Attendance />} />
-        <Route path="/admin/reports" element={<Reports />} />
-        <Route path="/admin/notifications" element={<Notifications />} />
-        <Route path="/admin/settings" element={<Settings />} />
-        <Route path="/admin/patient-forms" element={<PatientForms />} />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/employees"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Employees />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/patients"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminPatients />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/doctors"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminDoctors />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/appointments"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminAppointments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/kyc-review"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <KYCReview />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/attendance"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Attendance />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/reports"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/notifications"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/patient-forms"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <PatientForms />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Doctor Routes */}
-        <Route path="/doctor" element={<DoctorDashboard />} />
-        <Route path="/doctor/patient-forms" element={<PatientForms />} />
-        <Route path="/doctor/appointments" element={<DoctorAppointments />} />
-        <Route path="/doctor/patients" element={<DoctorPatients />} />
-        <Route path="/doctor/patients/:id" element={<PatientProfile />} />
-        <Route path="/doctor/calendar" element={<DoctorCalendar />} />
-        <Route path="/doctor/prescriptions" element={<DoctorPrescriptions />} />
+        <Route
+          path="/doctor"
+          element={
+            <ProtectedRoute allowedRoles={["doctor", "admin"]}>
+              <DoctorDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/patient-forms"
+          element={
+            <ProtectedRoute allowedRoles={["doctor", "admin"]}>
+              <PatientForms />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/appointments"
+          element={
+            <ProtectedRoute allowedRoles={["doctor", "admin"]}>
+              <DoctorAppointments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/patients"
+          element={
+            <ProtectedRoute allowedRoles={["doctor", "admin"]}>
+              <DoctorPatients />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/patients/:id"
+          element={
+            <ProtectedRoute allowedRoles={["doctor", "admin"]}>
+              <PatientProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/calendar"
+          element={
+            <ProtectedRoute allowedRoles={["doctor", "admin"]}>
+              <DoctorCalendar />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/prescriptions"
+          element={
+            <ProtectedRoute allowedRoles={["doctor", "admin"]}>
+              <DoctorPrescriptions />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/doctor/prescriptions/new"
-          element={<PrescriptionEditor />}
+          element={
+            <ProtectedRoute allowedRoles={["doctor", "admin"]}>
+              <PrescriptionEditor />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/doctor/prescriptions/new/:appointmentId"
-          element={<PrescriptionEditor />}
+          element={
+            <ProtectedRoute allowedRoles={["doctor", "admin"]}>
+              <PrescriptionEditor />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/doctor/prescriptions/edit/:prescriptionId"
-          element={<PrescriptionEditor />}
+          element={
+            <ProtectedRoute allowedRoles={["doctor", "admin"]}>
+              <PrescriptionEditor />
+            </ProtectedRoute>
+          }
         />
-        <Route path="/doctor/notifications" element={<DoctorNotifications />} />
+        <Route
+          path="/doctor/notifications"
+          element={
+            <ProtectedRoute allowedRoles={["doctor", "admin"]}>
+              <DoctorNotifications />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Patient Routes */}
         <Route
