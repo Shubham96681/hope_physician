@@ -1,51 +1,6 @@
 // services/patientFormService.js
 import axios from "axios";
-
-// Get API URL from runtime config (window.APP_CONFIG) or environment variable
-// This allows changing API URL without rebuilding
-const getApiUrl = () => {
-  // Priority 1: Runtime config from window (set in index.html or config.js)
-  if (
-    typeof window !== "undefined" &&
-    window.APP_CONFIG &&
-    window.APP_CONFIG.API_URL
-  ) {
-    return window.APP_CONFIG.API_URL;
-  }
-  // Priority 2: Environment variable (set at build time)
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-  // Priority 3: Auto-detect based on current host
-  if (typeof window !== "undefined") {
-    const host = window.location.hostname;
-    const protocol = window.location.protocol;
-
-    // Production server - Use Nginx reverse proxy (recommended)
-    if (host === "52.66.236.157" || host.includes("52.66.236.157")) {
-      // Use relative path for Nginx proxy (best practice)
-      // This avoids firewall issues and is more secure
-      return "/api";
-    }
-    // Development - Use direct backend
-    else if (host === "localhost" || host === "127.0.0.1") {
-      return "http://localhost:5000/api";
-    }
-    // Default: Use relative path (assumes Nginx proxy)
-    else {
-      return "/api";
-    }
-  }
-  // Fallback: localhost for development
-  return "http://localhost:5000/api";
-};
-
-const API_BASE_URL = getApiUrl();
-
-// Log API URL for debugging (remove in production)
-if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-  console.log("🔗 API Base URL:", API_BASE_URL);
-}
+import { API_BASE_URL } from "../config/apiConfig";
 
 const patientFormService = {
   // Submit Patient Information form
