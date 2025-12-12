@@ -155,6 +155,20 @@ const Header = () => {
               </li>
             </ul>
           </nav>
+
+          {/* RIGHT: Action Buttons */}
+          <div className="hidden lg:flex items-center gap-3">
+            <Link
+              to="/appointment"
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition font-medium text-sm shadow-sm hover:shadow-md">
+              Book an Appointment
+            </Link>
+            <Link
+              to="/portal"
+              className="px-4 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition font-medium text-sm shadow-sm hover:shadow-md">
+              Portal
+            </Link>
+          </div>
         </div>
       </div>
     </header>
