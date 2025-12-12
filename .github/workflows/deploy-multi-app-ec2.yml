@@ -10,6 +10,11 @@ on:
         required: false
         type: string
 
+env:
+  EC2_HOST: ${{ secrets.EC2_HOST }}
+  EC2_USER: ${{ secrets.EC2_USER }}
+  SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+
 jobs:
   test-and-deploy:
     name: Test, Build & Deploy All Apps
@@ -23,71 +28,69 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
-        cache: 'npm'
+        node-version: '20'
         
-    # Build and test all apps
-    - name: Build Hope Physicians App
-      working-directory: ./
+    - name: Setup SSH
       run: |
-        # Backend
-        cd backend
-        npm ci
-        npm run prisma:generate
-        cd ..
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts || true
         
-        # Frontend
-        cd frontend
-        npm ci
-        npm run build
-        cd ..
+    # Deploy configuration and scripts to EC2
+    - name: Deploy deployment scripts to EC2
+      timeout-minutes: 5
+      run: |
+        echo "📦 Copying deployment scripts to EC2..."
+        echo "🔍 Testing SSH connection..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ServerAliveInterval=5 -o ServerAliveCountMax=3 $EC2_USER@$EC2_HOST "echo 'SSH connection successful'" || {
+          echo "❌ SSH connection failed"
+          exit 1
+        }
+        echo "✅ SSH connection verified"
         
-    # Deploy to EC2
-    - name: Deploy all apps to EC2 via SCP
-      uses: appleboy/scp-action@v0.1.7
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        port: ${{ secrets.EC2_PORT || 22 }}
-        source: "."
-        target: "/home/${{ secrets.EC2_USER }}/hope-physicians"
-        strip_components: 0
-        rm: false
+        echo "📁 Creating deployment directory..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 $EC2_USER@$EC2_HOST "mkdir -p ~/deployment && echo 'Directory created'" || {
+          echo "❌ Failed to create directory"
+          exit 1
+        }
+        echo "✅ Directory created"
         
-    - name: Deploy second app (if exists)
-      uses: appleboy/scp-action@v0.1.7
-      if: ${{ secrets.APP2_REPO_URL != '' }}
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        port: ${{ secrets.EC2_PORT || 22 }}
-        source: "."
-        target: "/home/${{ secrets.EC2_USER }}/app2"
-        strip_components: 0
-        rm: false
-      continue-on-error: true
+        echo "📤 Copying deploy-multi-app.sh ($(du -h deploy-multi-app.sh | cut -f1))..."
+        timeout 60 scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ServerAliveInterval=5 deploy-multi-app.sh $EC2_USER@$EC2_HOST:~/deployment/ || {
+          echo "❌ Failed to copy deploy-multi-app.sh"
+          exit 1
+        }
+        echo "✅ deploy-multi-app.sh copied"
+        
+        echo "📤 Copying apps.config.json ($(du -h apps.config.json | cut -f1))..."
+        timeout 60 scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ServerAliveInterval=5 apps.config.json $EC2_USER@$EC2_HOST:~/deployment/ || {
+          echo "❌ Failed to copy apps.config.json"
+          exit 1
+        }
+        echo "✅ apps.config.json copied"
+        
+        echo "📤 Copying ecosystem.config.js ($(du -h ecosystem.config.js | cut -f1))..."
+        timeout 60 scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o ServerAliveInterval=5 ecosystem.config.js $EC2_USER@$EC2_HOST:~/deployment/ || {
+          echo "❌ Failed to copy ecosystem.config.js"
+          exit 1
+        }
+        echo "✅ ecosystem.config.js copied"
+        
+        echo "✅ All deployment scripts copied successfully"
         
     - name: Execute multi-app deployment script on EC2
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        port: ${{ secrets.EC2_PORT || 22 }}
-        envs: JWT_SECRET,EMAIL_USER,EMAIL_PASS,RAZORPAY_KEY_ID,RAZORPAY_KEY_SECRET,DATABASE_URL,PORT,NODE_ENV,VITE_API_URL
-        script: |
-          cd /home/${{ secrets.EC2_USER }}/hope-physicians
-          chmod +x deploy-multi-app.sh
-          export JWT_SECRET="${{ secrets.JWT_SECRET }}"
-          export EMAIL_USER="${{ secrets.EMAIL_USER }}"
-          export EMAIL_PASS="${{ secrets.EMAIL_PASS }}"
-          export RAZORPAY_KEY_ID="${{ secrets.RAZORPAY_KEY_ID }}"
-          export RAZORPAY_KEY_SECRET="${{ secrets.RAZORPAY_KEY_SECRET }}"
-          export DATABASE_URL="${{ secrets.DATABASE_URL }}"
-          export PORT="${{ secrets.PORT || 5000 }}"
-          export NODE_ENV="${{ secrets.NODE_ENV || 'production' }}"
-          export VITE_API_URL="${{ secrets.VITE_API_URL }}"
-          ./deploy-multi-app.sh
+      timeout-minutes: 30
+      env:
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        EMAIL_USER: ${{ secrets.EMAIL_USER }}
+        EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+        RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
+        RAZORPAY_KEY_SECRET: ${{ secrets.RAZORPAY_KEY_SECRET }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        NODE_ENV: ${{ secrets.NODE_ENV || 'production' }}
+        VITE_API_URL: ${{ secrets.VITE_API_URL }}
+      run: |
+        echo "🚀 Starting multi-app deployment..."
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -o ServerAliveInterval=30 -o ServerAliveCountMax=10 -o TCPKeepAlive=yes $EC2_USER@$EC2_HOST "cd ~/deployment && chmod +x deploy-multi-app.sh && export JWT_SECRET='$JWT_SECRET' && export EMAIL_USER='$EMAIL_USER' && export EMAIL_PASS='$EMAIL_PASS' && export RAZORPAY_KEY_ID='$RAZORPAY_KEY_ID' && export RAZORPAY_KEY_SECRET='$RAZORPAY_KEY_SECRET' && export DATABASE_URL='$DATABASE_URL' && export NODE_ENV='${NODE_ENV:-production}' && export VITE_API_URL='$VITE_API_URL' && timeout 1800 bash deploy-multi-app.sh"
 
